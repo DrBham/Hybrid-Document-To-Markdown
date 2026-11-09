@@ -2,21 +2,32 @@ from zipfile import ZipFile
 
 import pytest
 
-from document_converter.intelligence.extractor import DocumentImageExtractor
+from document_converter.embedded_media.extractor import DocumentImageExtractor
 
 
-def test_extracts_only_supported_ooxml_media(tmp_path):
-    document = tmp_path / "diagram.docx"
+@pytest.mark.parametrize(
+    "extension, media_prefix",
+    [
+        (".docx", "word/media/"),
+        (".pptx", "ppt/media/"),
+        (".xlsx", "xl/media/"),
+    ],
+)
+def test_extracts_only_supported_ooxml_media(
+    tmp_path, extension, media_prefix
+):
+    document = tmp_path / f"diagram{extension}"
     with ZipFile(document, "w") as archive:
-        archive.writestr("word/document.xml", "<document />")
-        archive.writestr("word/media/network.png", b"png")
-        archive.writestr("word/media/vector.svg", b"svg")
+        archive.writestr(f"{media_prefix}network.png", b"png")
+        archive.writestr(f"{media_prefix}vector.svg", b"svg")
 
     images = DocumentImageExtractor().extract(document, tmp_path / "output")
 
-    assert len(images) == 1
+    assert len(images) == 2
     assert images[0].path.read_bytes() == b"png"
     assert images[0].context == "Embedded image: network.png"
+    assert images[1].path.read_bytes() == b"svg"
+    assert images[1].context == "Embedded image: vector.svg"
 
 
 def test_delegates_pdf_rendering(tmp_path):

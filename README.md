@@ -6,8 +6,8 @@
 
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
-[![Development Status](https://img.shields.io/badge/status-E3%20Dataset%20%26%20Training%20WIP-7C3AED?style=for-the-badge)](#-roadmap)
-[![Tests](https://img.shields.io/badge/tests-97%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
+[![Development Status](https://img.shields.io/badge/status-Phase%20E%20Complete-16A34A?style=for-the-badge)](#-roadmap)
+[![Tests](https://img.shields.io/badge/tests-80%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
 [![MarkItDown](https://img.shields.io/badge/MarkItDown-0.1.9-2563EB?style=flat-square)](https://github.com/microsoft/markitdown)
@@ -30,7 +30,7 @@
 ---
 
 > [!IMPORTANT]
-> Phase D and checkpoints E0–E2 are complete. Phase E—fully local document intelligence—continues with E3 (dataset and reproducible training) as the current checkpoint. Installer work remains deferred until Phase E is complete.
+> Phase E is complete with automatic single-file image embedding. The application converts documents locally and stores document images directly inside Markdown as Base64 data URIs—without OCR, model downloads, training, or cloud inference.
 
 > [!NOTE]
 > This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
@@ -108,27 +108,21 @@
 <li>Custom transparent pixel-art application and header logo</li>
 <li>Scrollbars that appear only when content overflows</li>
 <li>Progressive “Save Markdown” action shown after successful conversion</li>
-<li>Framework-independent schema for OCR, visual elements, and diagram relationships</li>
-<li>Deterministic Markdown renderer for image-analysis results</li>
-<li>Persistent local model registry with size and SHA-256 verification</li>
-<li>Lazy PaddleOCR adapter with no cloud API dependency</li>
-<li>OOXML image extraction and local PDF-page rendering</li>
-<li>Corpus-level exact-match and character-error-rate evaluation</li>
-<li>Reproducible OCR model-pack bootstrap and SHA-256 manifest generation</li>
-<li>Real local OCR and image-only PDF pipeline smoke tests</li>
-<li>Measured E2 acceptance gate covering quality, resources, GUI, integrity, and licensing</li>
-<li>97 passing automated tests</li>
+<li>Automatic DOCX, PPTX, and XLSX embedded-image extraction</li>
+<li>Automatic local PDF-page rendering</li>
+<li>PNG, JPEG, GIF, WebP, BMP, TIFF, and SVG data-URI support</li>
+<li>Single-file Markdown output with Base64-embedded images</li>
+<li>No OCR runtime, model pack, dataset, or training requirement</li>
+<li>Real DOCX image-to-Base64 integration coverage</li>
+<li>80 passing automated tests</li>
 </ul>
 </td>
 <td width="50%" valign="top">
 <h3>🚧 WIP &amp; planned</h3>
 <ul>
-<li><strong>Completed — E2:</strong> verified offline OCR baseline and model pack</li>
-<li><strong>Active — E3:</strong> dataset provenance, stable splits, and quality controls</li>
-<li><strong>Active — E3:</strong> reproducible preprocessing and fine-tuning workflow</li>
-<li><strong>Planned — E4:</strong> diagram and informative-image understanding</li>
-<li><strong>Planned — E5:</strong> end-to-end GUI acceptance and public model pack</li>
-<li><strong>Deferred:</strong> Windows bootstrap installer and selectable model packs</li>
+<li><strong>Completed — Phase E:</strong> preserve images inside one Markdown file</li>
+<li><strong>Planned — Phase F:</strong> Windows packaging and release validation</li>
+<li><strong>Planned:</strong> compatibility testing with major multimodal AI clients</li>
 </ul>
 </td>
 </tr>
@@ -150,7 +144,7 @@ Representative integration coverage exists for every MVP format.
 | Structured text | `.json`, `.xml` | MarkItDown core | ✅ Passed |
 
 > [!WARNING]
-> “Supported” does not mean perfect visual fidelity. Standard conversion handles document text today. Scanned pages, embedded images, and diagrams remain Phase E work and may still require manual review.
+> “Supported” does not mean perfect visual fidelity. Embedded images are preserved as Base64, not interpreted. Whether an AI chat decodes a Markdown data URI depends on that platform.
 
 Emails, archives, audio, EPUB, LOG files, and standalone image conversion are outside the committed MVP scope.
 
@@ -162,12 +156,11 @@ flowchart LR
     B --> C{Same extension?}
     C -- No --> X[Reject batch]
     C -- Yes --> D[Converter router]
-    D --> E[Microsoft MarkItDown]
-    D -. optional Phase E .-> I[Local image extraction]
-    I --> O[Local OCR and visual analysis]
-    O --> R[Structured result and Markdown renderer]
-    E --> M[Merge document and image Markdown]
-    R --> M
+    D --> E[Microsoft MarkItDown text conversion]
+    D --> I[Local document image extraction]
+    I --> O[Base64 data URI encoding]
+    E --> M[Merge into one Markdown file]
+    O --> M
     M --> F[Per-file outcomes]
     F --> G[Markdown export]
     G --> H[One .md file per input]
@@ -175,7 +168,7 @@ flowchart LR
     UI[PySide6 GUI] -. controls .-> A
 ```
 
-The conversion path is fully local. MarkItDown receives a local path through `convert_local()`. The application then converts the library response into its own `ConversionResult` model. Phase E follows the same boundary: local model files enter a replaceable backend and return application-owned result objects.
+The conversion path is fully local. MarkItDown converts document text, while `DocumentImageExtractor` retrieves OOXML media or renders PDF pages. `EmbeddedMediaDocumentConverter` encodes each image as a Base64 `data:` URI and appends it to the same Markdown result.
 
 ## 🚀 Quick Start
 
@@ -192,7 +185,7 @@ The conversion path is fully local. MarkItDown receives a local path through `co
 <p>No API key is required for local conversion.</p>
 <h3 id="run-the-tests">🧪 Test</h3>
 <pre><code>python -m pytest -q</code></pre>
-<p>Expected: <code>70 passed</code></p>
+<p>Expected: <code>80 passed</code></p>
 </td>
 <td width="62%" valign="top">
 <h3 id="installation">📦 Installation</h3>
@@ -223,50 +216,23 @@ python -m document_converter
 
 The file-type selector starts at TXT. Choose another format when needed, then browse or drag matching documents, convert them, review a result, and choose an output folder. “Save Markdown” appears after at least one conversion succeeds. Conversion runs in a worker thread, so the window remains responsive.
 
-### 👁️ Prepare the Optional Local Intelligence Runtime
+### 🖼️ Single-File Image Embedding
 
-The base converter does not install machine-learning packages. Developers who work on Phase E can create a separate environment layer:
+Image embedding is automatic for PDF, DOCX, PPTX, and XLSX inputs. No separate runtime or model installation is required.
 
-```powershell
-python -m pip install -r requirements-intelligence.txt
+The generated Markdown contains entries such as:
+
+```markdown
+![Embedded image: diagram.png](data:image/png;base64,iVBORw0KGgo...)
 ```
 
-This optional layer uses PaddleOCR as the first pretrained OCR baseline. Build the current versioned model pack after installing the dependencies:
-
-```powershell
-$env:PYTHONPATH = "src"
-python scripts/bootstrap_ocr_model.py --source huggingface
-```
-
-The bootstrap stores the models in the per-user application-data directory, records their SHA-256 checksums, and verifies the pack before use. The GUI enables **Analyze document images locally** only while that integrity check passes.
+The characters after `base64,` are the original image bytes represented as text. A compatible Markdown renderer or multimodal AI platform can decode them back into an image.
 
 > [!IMPORTANT]
-> No API key or hosted inference provider is used. The one-time bootstrap downloads upstream model weights; inference after that runs locally. The E2 license review is complete, but an E5 public pack must include the Apache-2.0 notice and pass a final artifact audit.
+> Base64 is encoding, not encryption or OCR. It preserves the original visual but does not describe its meaning. Uploading the Markdown to a third-party AI also subjects its contents to that provider's privacy policy.
 
-Reproduce the attributed E2 smoke evaluation:
-
-```powershell
-python scripts/fetch_e2_corpus.py
-$env:PYTHONPATH = "src"
-python scripts/evaluate_e2_corpus.py
-```
-
-The downloaded corpus and generated results stay in ignored local directories. Their source URLs, licenses, and checksums remain tracked in the repository manifest.
-
-The complete E2 gate additionally consumes the synthetic benchmark and GUI-acceptance JSON evidence:
-
-```powershell
-$env:PYTHONPATH = "src"
-python scripts/generate_e2_fixture.py .e2-results/network.png
-python scripts/generate_e2_fixture.py .e2-results/network.pdf
-python scripts/benchmark_ocr.py .e2-results/network.png `
-  --reference "TOPOLOGI JARINGAN KANTOR INTERNET ROUTER UTAMA 1 GBPS SWITCH LANTAI 1 KOMPUTER ADMIN" `
-  --json-output .e2-results/network-benchmark.json
-python scripts/run_e2_gui_acceptance.py .e2-results/network.pdf
-python scripts/validate_e2_acceptance.py
-```
-
-The thresholds are versioned in `datasets/manifests/e2-acceptance-policy.json`; generated evidence remains outside Git.
+> [!WARNING]
+> Base64 increases binary size by roughly one third, and not every AI chat accepts or renders data URIs from an uploaded `.md` file. Large PDFs can therefore produce very large Markdown files.
 
 ### 🧑‍💻 Use the Core API
 
@@ -365,12 +331,8 @@ python .\your_script.py
 | Routing | Select the converter by extension | `ConverterRouter` |
 | Conversion adapter | Isolate the third-party engine | `MarkItDownConverter` |
 | Services | Coordinate batches and export | `BatchConverter`, `MarkdownExporter` |
-| Local intelligence schema | Keep OCR and diagram output independent of ML frameworks | `DocumentIntelligenceResult`, `TextRegion`, `VisualElement`, `VisualRelationship` |
-| Local model integrity | Locate persistent model packs and reject incomplete or modified artifacts | `LocalModelManager` |
-| OCR backend | Adapt local PaddleOCR results without importing it in the base app | `PaddleOCRBackend` |
 | Image extraction | Extract OOXML media and render PDF pages locally | `DocumentImageExtractor` |
-| Intelligence rendering | Produce reviewable Markdown from structured image results | `LocalDocumentIntelligence`, `render_intelligence_markdown()` |
-| Evaluation | Compare model versions with stable corpus-level OCR metrics | `evaluate_ocr_samples()`, `scripts/evaluate_ocr.py` |
+| Media embedding | Encode images as Base64 data URIs and append them to Markdown | `EmbeddedMediaDocumentConverter` |
 | GUI | Desktop interaction | PySide6 window, worker thread, preview, and export workflow |
 
 ### Why an adapter?
@@ -403,18 +365,9 @@ This design provides:
 │       │   ├── app.py
 │       │   ├── main_window.py
 │       │   └── theme.py
-│       ├── intelligence/
-│       │   ├── backend.py
+│       ├── embedded_media/
 │       │   ├── converter.py
-│       │   ├── evaluation.py
-│       │   ├── extractor.py
-│       │   ├── model_manager.py
-│       │   ├── model_pack.py
-│       │   ├── models.py
-│       │   ├── paddle_ocr.py
-│       │   ├── pipeline.py
-│       │   ├── renderer.py
-│       │   └── service.py
+│       │   └── extractor.py
 │       └── services/
 │           ├── batch_converter.py
 │           └── markdown_exporter.py
@@ -429,29 +382,8 @@ This design provides:
 │       ├── PressStart2P-OFL.txt
 │       └── PressStart2P-FONTLOG.txt
 ├── tests/
-├── datasets/
-│   ├── manifests/
-│   │   ├── e2-acceptance-policy.json
-│   │   └── e2-paddleocr-smoke.json
-│   └── README.md
-├── docs/
-│   └── evaluations/
-│       ├── E2_BASELINE.md
-│       └── E2_MODEL_LICENSE_REVIEW.md
-├── scripts/
-│   ├── benchmark_ocr.py
-│   ├── bootstrap_ocr_model.py
-│   ├── evaluate_e2_corpus.py
-│   ├── evaluate_ocr.py
-│   ├── fetch_e2_corpus.py
-│   ├── generate_e2_fixture.py
-│   ├── run_e2_gui_acceptance.py
-│   ├── run_e2_pipeline.py
-│   └── validate_e2_acceptance.py
 ├── pytest.ini
 ├── requirements.in
-├── requirements-intelligence.in
-├── requirements-intelligence.txt
 ├── requirements.txt
 ├── THIRD_PARTY_NOTICES.md
 └── README.md
@@ -480,7 +412,9 @@ The test suite focuses on application behavior and third-party integration bound
 <li>Partial failures and result preservation</li>
 <li>Unicode export and overwrite protection</li>
 <li>GUI selection, state, threaded conversion, and export workflow</li>
-<li>Local intelligence result validation, Markdown rendering, model integrity, and OCR adapter boundaries</li>
+<li>OOXML media extraction for DOCX, PPTX, and XLSX</li>
+<li>PDF-page rendering and Base64 data-URI generation</li>
+<li>Real DOCX image embedding through the default router</li>
 </ul>
 </td>
 </tr>
@@ -502,19 +436,20 @@ python -m pytest -q
 <td width="50%" valign="top">
 <h3>🔒 Local-first privacy</h3>
 <ul>
-<li>Conversion and planned image analysis need no API key.</li>
+<li>Conversion and image embedding need no API key.</li>
 <li>Documents are not uploaded by the application.</li>
-<li>Installed model packs remain available without internet access.</li>
-<li>Model artifacts are verified before use.</li>
-<li>The base converter remains usable without the optional ML runtime.</li>
+<li>No OCR model, training dataset, or inference runtime is installed.</li>
+<li>Images are encoded locally and remain inside the exported Markdown.</li>
+<li>Users choose whether to upload the result to a third-party AI.</li>
 </ul>
 </td>
 <td width="50%" valign="top">
 <h3>⚠️ Current limitations</h3>
 <ul>
 <li>A packaged <code>.exe</code> is not available yet.</li>
-<li>The E2 baseline passed local end-to-end acceptance, but it is not a full diagram-understanding model.</li>
-<li>The first public, project-trained model pack is not published yet.</li>
+<li>Not every Markdown renderer or AI chat supports Base64 data URIs.</li>
+<li>Base64 output is larger than the original binary image data.</li>
+<li>The application preserves images but does not interpret diagrams or run OCR.</li>
 <li>Complex layouts may lose fidelity.</li>
 <li>Encrypted or damaged files may fail.</li>
 <li>The 100 MiB limit is not yet configurable in the GUI.</li>
@@ -524,7 +459,7 @@ python -m pytest -q
 </table>
 
 > [!IMPORTANT]
-> Phase E is designed for local inference. Dataset licenses, model licenses, weight size, accuracy, and hardware performance will be reviewed before any trained model is published.
+> Conversion remains local, but privacy is no longer under this application's control after a user uploads the exported Markdown to ChatGPT, Claude, or another external service.
 
 ## 🧰 Technology Stack
 
@@ -533,8 +468,7 @@ python -m pytest -q
 | Language | Python 3.13 | Application and tests |
 | Desktop GUI | PySide6 6.12 | Implemented Phase D workflow |
 | Conversion | Microsoft MarkItDown 0.1.9 | Production conversion engine |
-| Local OCR baseline | PaddleOCR 3.7.0 + PaddlePaddle 3.3.1 | Optional Phase E runtime; not part of the base install |
-| Intelligence layer | Project-owned Python interfaces and result models | OCR, visual elements, relationships, model integrity, and Markdown rendering |
+| Embedded media | Python Base64 + local OOXML/PDF extraction | Preserve images inside one `.md` file |
 | DOCX | Mammoth through `markitdown[docx]` | Word conversion |
 | PDF | pdfminer.six and pdfplumber through `markitdown[pdf]` | Text-based PDF conversion |
 | PowerPoint | python-pptx through `markitdown[pptx]` | PPTX conversion |
@@ -543,7 +477,7 @@ python -m pytest -q
 | Version control | Git and GitHub | History and collaboration |
 | Target OS | Windows | Development and release target |
 
-Base dependencies are declared in `requirements.in`, while the optional Phase E runtime is declared in `requirements-intelligence.in`. Reproducible snapshots are pinned separately in `requirements.txt` and `requirements-intelligence.txt`.
+Direct dependencies are declared in `requirements.in`; the reproducible development snapshot is pinned in `requirements.txt`. There is no separate machine-learning dependency layer.
 
 ## 🗺️ Roadmap
 
@@ -553,98 +487,29 @@ Base dependencies are declared in `requirements.in`, while the optional Phase E 
 | B — Engine | MarkItDown integration and initial TXT/DOCX/PDF verification | ✅ Completed |
 | C — Conversion core | All MVP formats, validation, same-extension batches, per-file outcomes, and export | ✅ Completed |
 | D — Desktop GUI | Format selection, drag and drop, threaded conversion, status list, preview, Save Markdown workflow, theme, and branding | ✅ Completed |
-| E — Local document intelligence | OCR, embedded-image extraction, diagram understanding, training/evaluation, and publishable model packs | 🚧 In progress |
-| F — Release | Regression testing, bootstrap installer, selectable feature packs, license audit, and GitHub release | ⏸️ Deferred until E is complete |
+| E — Single-file media preservation | Extract document images and embed them as Base64 data URIs in the same Markdown file | ✅ Completed |
+| F — Release | Regression testing, Windows installer, final license audit, compatibility documentation, and GitHub release | 🚧 Next |
 
-### Current checkpoint: E3 — Dataset & Training
+### Phase E result
 
-Phase D delivered:
+- Images are embedded automatically; there is no GUI model toggle.
+- DOCX, PPTX, and XLSX media are read directly from their OOXML containers.
+- PDF pages are rendered locally and embedded as PNG data URIs.
+- PNG, JPEG, GIF, WebP, BMP, TIFF, and SVG are supported.
+- Text and image payloads stay together in one `.md` file.
+- PaddleOCR, model packs, datasets, training scripts, and ML dependencies were removed.
+- Real DOCX image embedding and local PDF rendering are covered by tests.
 
-- TXT-first file-type selector with accessible browse and drag-and-drop alternatives
-- Same-extension selected-file list
-- Responsive threaded conversion with per-file status
-- Markdown preview, copy action, and adaptive scrollbars
-- Output-directory selection and overwrite handling
-- Progressive Save Markdown action with collision-safe one-file-per-input output
-- Low-glare dark-medieval pixel theme and custom application branding
-- Phase D baseline: 70 passing automated tests
+### Next: Phase F
 
-Checkpoint E now has a local, testable foundation:
-
-- Framework-independent OCR and diagram result schema
-- Deterministic image-analysis Markdown renderer
-- Persistent model directory with version, size, and SHA-256 validation
-- Lazy PaddleOCR adapter using local detection and recognition directories
-- Local extraction of embedded OOXML images and rendered PDF pages
-- Best-effort composition of image analysis with existing Markdown conversion
-- Reproducible exact-match and character-error-rate evaluation utilities
-- Optional dependency layer that does not enlarge the base converter
-- GUI status that clearly distinguishes missing, damaged, ready, and not-yet-connected model states
-- No API keys, cloud uploads, or hosted Vision client
-- Reproducible mobile OCR model-pack bootstrap
-- Successful real OCR and image-only PDF end-to-end smoke tests
-- Reproducible E2 acceptance policy and machine-readable result
-- Real GUI conversion acceptance with the verified local model
-- Completed E2 model-license review with an E5 release-compliance boundary
-- 97 passing automated tests
-
-Current E2 baseline:
-
-| Evidence | Result |
-|---|---:|
-| Local model pack | Ready; 19.10 MiB; SHA-256 verified |
-| Primary optional OCR runtime | ~515 MiB installed in the development environment |
-| OCR models | PP-LCNet orientation + PP-OCRv5 mobile detection + Latin recognition |
-| Synthetic network-diagram CER | 2.38% |
-| Cold / warm CPU inference | 5.41 s / 2.75 s average |
-| Process RSS increase | 264.82 MiB |
-| Official five-fixture snippet recall | 100% (24/24); smoke corpus only |
-| Rotated-book snippet recall | Improved from 0/4 in v1 to 4/4 in v2 |
-| Image-only PDF pipeline | Passed; local analysis appended to Markdown |
-| GUI acceptance | Passed; option enabled, conversion succeeded, analysis rendered |
-| E2 acceptance gate | Passed; 12/12 checks |
-
-See the full [E2 baseline report](docs/evaluations/E2_BASELINE.md) and [model-license review](docs/evaluations/E2_MODEL_LICENSE_REVIEW.md) for the evidence and release boundary. The ~515 MiB optional development runtime is isolated from the base converter and remains an E5 packaging optimization target.
-
-### Phase E execution plan
-
-| Checkpoint | Scope | Exit criteria | Status |
-|---|---|---|:---:|
-| E0 — Architecture | Remove the cloud path; define local result, backend, renderer, and model interfaces | No API key or hosted runtime remains; unit tests pass | ✅ Completed |
-| E1 — Extraction pipeline | Extract OOXML media, render PDF pages, merge analysis with document Markdown | DOCX/PPTX/XLSX extraction and real PDF rendering are tested | ✅ Completed |
-| E2 — OCR baseline & model pack | Operate the local runtime and model pack, then evaluate representative OCR inputs | A verified model pack loads offline and meets documented quality/resource thresholds through the application pipeline | ✅ Completed |
-| E3 — Dataset & training | Register licensed datasets, create stable splits, add preprocessing and fine-tuning scripts | Training is reproducible; every dataset and checkpoint has provenance and license metadata | 🚧 Active — WIP |
-| E4 — Visual understanding | Detect diagram elements, labels, arrows, and relationships beyond plain OCR | Representative topology, flowchart, chart, and informative-image fixtures produce structured relationships | ⏳ Planned |
-| E5 — Product integration | Refine GUI progress/errors, run quality and performance acceptance, publish the first ready-to-use model pack | A new user can enable local analysis and use it without training a model | ⏳ Planned |
-
-#### What we work on next
-
-E3 is the immediate development stage. The E2 baseline, resource thresholds, GUI acceptance, integrity checks, and model-license review are complete. Work now continues with:
-
-1. Register candidate datasets with source, license, language, and privacy metadata.
-2. Define stable Indonesian/English train, validation, and held-out test splits.
-3. Add deterministic preprocessing and dataset-validation commands.
-4. Add full manually verified references for per-category CER measurement.
-5. Establish a reproducible fine-tuning configuration and checkpoint manifest.
-6. Compare every trained checkpoint with the frozen E2 baseline before promotion.
-
-E2 closed with 12/12 acceptance checks passing. Its five-file official corpus remains a smoke corpus; broader dataset construction, full-reference evaluation, and model training intentionally belong to E3.
-
-### Phase E definition of done
-
-Phase E can be marked complete when:
-
-- document text and informative images are processed locally;
-- the public model pack can be reused without user-side training;
-- dataset and model licenses permit the intended distribution;
-- OCR and diagram quality are measured against a stable test set;
-- corrupted or incomplete model files are rejected safely;
-- the GUI provides useful progress, errors, and fallback behavior;
-- performance and storage targets are documented on representative Windows hardware;
-- all regression and Phase E acceptance tests pass.
+1. Build and measure the Windows executable and installer.
+2. Test maximum practical Markdown sizes for image-heavy documents.
+3. Document compatibility results for ChatGPT, Claude, and common Markdown renderers.
+4. Add clear warnings before users upload private documents to external AI services.
+5. Produce the final dependency and license inventory for the release artifact.
 
 > [!IMPORTANT]
-> Phase E is not complete yet. E0, E1, and E2 are complete; E3 is active. The GUI exposes local analysis when a valid model pack is installed and falls back safely when the pack is missing or damaged. Public packaging remains an E5 deliverable and requires the recorded Apache-2.0 notices plus a final artifact audit.
+> This application guarantees that image bytes are preserved in the Markdown data URI. It cannot guarantee that every external AI platform will decode that URI from an uploaded `.md` file.
 
 Development follows this milestone cycle:
 
@@ -652,7 +517,7 @@ Development follows this milestone cycle:
 Implement → Test → Document → Commit → Push
 ```
 
-After a checkpoint is complete, the next phase becomes WIP.
+After a phase is complete, the next phase becomes WIP.
 
 ## 🧭 Engineering Principles
 

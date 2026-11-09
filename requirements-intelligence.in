@@ -1,6 +1,0 @@
-# Optional Phase E local document-intelligence runtime.
-# Kept separate so the base converter remains lightweight.
--r requirements.in
-
-paddlepaddle==3.3.1
-paddleocr==3.7.0

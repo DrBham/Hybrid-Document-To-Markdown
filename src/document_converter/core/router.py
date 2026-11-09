@@ -14,8 +14,9 @@ class ConverterRouter:
     ):
         if converters is None:
             from ..converters.markitdown_converter import MarkItDownConverter
+            from ..embedded_media.converter import EmbeddedMediaDocumentConverter
 
-            engine = MarkItDownConverter()
+            engine = EmbeddedMediaDocumentConverter(MarkItDownConverter())
             converters = {
                 extension: engine
                 for extension in SUPPORTED_FORMATS

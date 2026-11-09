@@ -15,12 +15,6 @@ from document_converter.core.models import (
     FileConversionOutcome,
 )
 from document_converter.gui.main_window import MainWindow
-from document_converter.intelligence.model_manager import (
-    LocalModelManager,
-    ModelInspection,
-    ModelState,
-)
-from document_converter.services.batch_converter import BatchConverter
 
 
 @pytest.fixture(scope="module")
@@ -29,8 +23,8 @@ def app():
 
 
 @pytest.fixture
-def window(app, tmp_path):
-    widget = MainWindow(model_manager=LocalModelManager(tmp_path / "models"))
+def window(app):
+    widget = MainWindow()
     yield widget
     widget.close()
 
@@ -70,53 +64,12 @@ def test_document_panels_show_scrollbars_only_when_needed(window):
     assert window.preview.lineWrapMode() == QPlainTextEdit.LineWrapMode.NoWrap
 
 
-def test_local_intelligence_is_explicit_and_reports_missing_model(window):
-    assert not window.intelligence_checkbox.isChecked()
-    assert not window.intelligence_checkbox.isEnabled()
+def test_embedded_media_is_automatic_and_model_free(window):
     assert window.privacy_badge.text() == "Local-first processing"
-
-    pdf_index = window.drop_zone.format_selector.findText(
-        "PDF document (.pdf)"
-    )
-    window.drop_zone.format_selector.setCurrentIndex(pdf_index)
-
-    assert not window.intelligence_checkbox.isEnabled()
-    assert "model pack is not installed" in (
-        window.intelligence_helper.text().lower()
-    )
-    assert "online" not in window.intelligence_helper.text().lower()
-
-    window.drop_zone.reset_format()
-    assert not window.intelligence_checkbox.isChecked()
-    assert not window.intelligence_checkbox.isEnabled()
-    assert window.privacy_badge.text() == "Local-first processing"
-
-
-def test_verified_local_model_enables_supported_document_analysis(app):
-    class ReadyModelManager:
-        def inspect(self, model_id):
-            return ModelInspection(ModelState.READY, model_id, "test-1")
-
-    intelligence_converter = BatchConverter()
-    widget = MainWindow(
-        intelligence_converter=intelligence_converter,
-        model_manager=ReadyModelManager(),
-    )
-    try:
-        pdf_index = widget.drop_zone.format_selector.findText(
-            "PDF document (.pdf)"
-        )
-        widget.drop_zone.format_selector.setCurrentIndex(pdf_index)
-
-        assert widget.intelligence_checkbox.isEnabled()
-        widget.intelligence_checkbox.setChecked(True)
-        assert widget.privacy_badge.text() == "Local-first processing"
-        assert "never leave this device" in (
-            widget.intelligence_helper.text().lower()
-        )
-        assert widget._conversion_service() is intelligence_converter
-    finally:
-        widget.close()
+    helper = window.media_helper.text().lower()
+    assert "base64" in helper
+    assert "automatically" in helper
+    assert "no ai model" in helper
 
 
 def test_file_type_selector_filters_added_files(window, tmp_path):

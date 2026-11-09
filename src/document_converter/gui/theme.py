@@ -116,37 +116,10 @@ QLabel#dropHint {{
     font-size: 12px;
 }}
 
-QLabel#intelligenceHelper {{
+QLabel#mediaHelper {{
     color: {COLORS["muted_foreground"]};
     font-size: 12px;
     padding-bottom: 2px;
-}}
-
-QCheckBox {{
-    color: {COLORS["foreground"]};
-    min-height: 28px;
-    spacing: 9px;
-}}
-
-QCheckBox::indicator {{
-    background-color: {COLORS["input"]};
-    border: 1px solid {COLORS["border"]};
-    border-radius: 3px;
-    height: 18px;
-    width: 18px;
-}}
-
-QCheckBox::indicator:hover, QCheckBox:focus {{
-    border-color: {COLORS["primary"]};
-}}
-
-QCheckBox::indicator:checked {{
-    background-color: {COLORS["primary"]};
-    border-color: {COLORS["primary_hover"]};
-}}
-
-QCheckBox:disabled {{
-    color: #777166;
 }}
 
 QPushButton {{

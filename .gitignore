@@ -27,10 +27,6 @@ dist/
 # Temporary files
 *.log
 *.tmp
-.e2-temp/
-.e2-corpus/
-.e2-results/
-.e2-acceptance-temp/
 
 # Operating system files
 .DS_Store

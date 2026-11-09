@@ -19,7 +19,6 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
-    QCheckBox,
     QComboBox,
     QFileDialog,
     QFrame,
@@ -43,8 +42,6 @@ from PySide6.QtWidgets import (
 
 from ..core.models import BatchConversionResult, FileConversionOutcome
 from ..core.validator import SUPPORTED_FORMATS
-from ..intelligence.model_manager import LocalModelManager, ModelState
-from ..intelligence.pipeline import build_local_intelligence_batch_converter
 from ..services.batch_converter import BatchConverter
 from ..services.markdown_exporter import MarkdownExporter
 from .theme import APP_LOGO_PATH, APP_STYLESHEET, load_theme_fonts
@@ -67,10 +64,6 @@ FORMAT_OPTIONS = (
     ("JSON data (.json)", (".json",)),
     ("XML document (.xml)", (".xml",)),
 )
-
-INTELLIGENCE_SUPPORTED_FORMATS = frozenset({".pdf", ".docx", ".pptx", ".xlsx"})
-INTELLIGENCE_MODEL_ID = "hybrid-document-intelligence"
-
 
 class DropZone(QFrame):
     """Accessible drag-and-drop surface with a file-picker alternative."""
@@ -238,23 +231,12 @@ class MainWindow(QMainWindow):
         self,
         batch_converter: BatchConverter | None = None,
         exporter: MarkdownExporter | None = None,
-        intelligence_converter: BatchConverter | None = None,
-        model_manager: LocalModelManager | None = None,
     ):
         super().__init__()
         self._batch_converter = (
             batch_converter if batch_converter is not None else BatchConverter()
         )
         self._exporter = exporter if exporter is not None else MarkdownExporter()
-        self._model_manager = model_manager or LocalModelManager()
-        if intelligence_converter is None:
-            inspection = self._model_manager.inspect(INTELLIGENCE_MODEL_ID)
-            if inspection.state == ModelState.READY:
-                intelligence_converter = build_local_intelligence_batch_converter(
-                    self._model_manager,
-                    INTELLIGENCE_MODEL_ID,
-                )
-        self._intelligence_converter = intelligence_converter
         self._files: list[Path] = []
         self._items: dict[str, QTreeWidgetItem] = {}
         self._outcomes: dict[str, FileConversionOutcome] = {}
@@ -433,21 +415,15 @@ class MainWindow(QMainWindow):
         output_title = QLabel("Conversion and output")
         output_title.setObjectName("sectionTitle")
 
-        self.intelligence_checkbox = QCheckBox(
-            "Analyze document images locally"
+        self.media_helper = QLabel(
+            "Images from PDF, DOCX, PPTX, and XLSX are embedded automatically "
+            "inside the Markdown file as Base64. No AI model is required."
         )
-        self.intelligence_checkbox.setAccessibleName(
-            "Enable local analysis for embedded document images"
+        self.media_helper.setObjectName("mediaHelper")
+        self.media_helper.setAccessibleName(
+            "Automatic single-file image embedding information"
         )
-        self.intelligence_checkbox.setToolTip(
-            "Optional for PDF, DOCX, PPTX, and XLSX. Processing stays on this "
-            "device and requires the Phase E model pack."
-        )
-        self.intelligence_helper = QLabel(
-            "Checking the local intelligence model…"
-        )
-        self.intelligence_helper.setObjectName("intelligenceHelper")
-        self.intelligence_helper.setWordWrap(True)
+        self.media_helper.setWordWrap(True)
         output_row = QHBoxLayout()
         self.output_path = QLineEdit(self._default_output_directory())
         self.output_path.setReadOnly(True)
@@ -487,8 +463,7 @@ class MainWindow(QMainWindow):
         action_row.addWidget(self.export_button)
 
         output_layout.addWidget(output_title)
-        output_layout.addWidget(self.intelligence_checkbox)
-        output_layout.addWidget(self.intelligence_helper)
+        output_layout.addWidget(self.media_helper)
         output_layout.addLayout(output_row)
         output_layout.addLayout(action_row)
         layout.addWidget(output_card)
@@ -569,12 +544,6 @@ class MainWindow(QMainWindow):
         self.copy_button.clicked.connect(self._copy_preview)
         self.file_tree.itemSelectionChanged.connect(self._show_selected_preview)
         self.file_tree.itemEntered.connect(self._show_file_hover_hint)
-        self.intelligence_checkbox.toggled.connect(
-            self._update_intelligence_state
-        )
-        self.drop_zone.format_selector.currentIndexChanged.connect(
-            self._update_intelligence_availability
-        )
 
     def _configure_interaction_cursors(self) -> None:
         pointer = QCursor(Qt.CursorShape.PointingHandCursor)
@@ -582,71 +551,7 @@ class MainWindow(QMainWindow):
             button.setCursor(pointer)
         for combo_box in self.findChildren(QComboBox):
             combo_box.setCursor(pointer)
-        self.intelligence_checkbox.setCursor(pointer)
         self.file_tree.viewport().setCursor(pointer)
-
-    @Slot()
-    def _update_intelligence_availability(self) -> None:
-        extensions = self.drop_zone.selected_extensions()
-        format_supported = bool(
-            extensions
-            and set(extensions).issubset(INTELLIGENCE_SUPPORTED_FORMATS)
-        )
-        inspection = self._model_manager.inspect(INTELLIGENCE_MODEL_ID)
-        runtime_ready = self._intelligence_converter is not None
-        available = (
-            format_supported
-            and inspection.state == ModelState.READY
-            and runtime_ready
-        )
-        self.intelligence_checkbox.setEnabled(
-            available and self._thread is None
-        )
-        if not available:
-            self.intelligence_checkbox.setChecked(False)
-
-        if not format_supported:
-            self.intelligence_helper.setText(
-                "Local image analysis supports PDF, DOCX, PPTX, and XLSX files."
-            )
-        elif inspection.state == ModelState.NOT_INSTALLED:
-            self.intelligence_helper.setText(
-                "Phase E model pack is not installed yet. Standard local "
-                "document conversion remains available."
-            )
-        elif inspection.state in {ModelState.INCOMPLETE, ModelState.CORRUPT}:
-            self.intelligence_helper.setText(
-                "The local model pack failed its integrity check. Reinstall "
-                "the model pack before enabling image analysis."
-            )
-        elif not runtime_ready:
-            self.intelligence_helper.setText(
-                "The local model is ready, but the document-image pipeline is "
-                "still being connected during Phase E."
-            )
-        elif not self.intelligence_checkbox.isChecked():
-            self.intelligence_helper.setText(
-                f"Local model {inspection.version} is ready. Enable analysis "
-                "to read embedded images and scanned pages."
-            )
-
-    @Slot(bool)
-    def _update_intelligence_state(self, enabled: bool) -> None:
-        if enabled:
-            inspection = self._model_manager.inspect(INTELLIGENCE_MODEL_ID)
-            self.intelligence_helper.setText(
-                f"Local analysis is enabled with model {inspection.version}. "
-                "Documents never leave this device."
-            )
-            self.convert_button.setToolTip(
-                "Convert documents and analyze their images locally"
-            )
-            return
-
-        self.convert_button.setToolTip(
-            "Convert the selected documents locally"
-        )
-        self._update_intelligence_availability()
 
     @Slot(object, int)
     def _show_file_hover_hint(
@@ -815,10 +720,6 @@ class MainWindow(QMainWindow):
         if not self._files or self._thread is not None:
             return
 
-        service = self._conversion_service()
-        if service is None:
-            return
-
         self._hide_error()
         self._outcomes.clear()
         self.export_button.hide()
@@ -827,16 +728,13 @@ class MainWindow(QMainWindow):
             item.setToolTip(3, "")
 
         self._set_busy(True)
-        if self.intelligence_checkbox.isChecked():
-            self.statusBar().showMessage(
-                "Converting and analyzing document images locally…"
-            )
-        else:
-            self.statusBar().showMessage("Converting files locally…")
+        self.statusBar().showMessage(
+            "Converting files and embedding document images locally…"
+        )
 
         self._thread = QThread(self)
         self._worker = ConversionWorker(
-            service,
+            self._batch_converter,
             tuple(self._files),
         )
         self._worker.moveToThread(self._thread)
@@ -849,20 +747,6 @@ class MainWindow(QMainWindow):
         self._worker.failed.connect(self._worker.deleteLater)
         self._thread.finished.connect(self._thread_finished)
         self._thread.start()
-
-    def _conversion_service(self) -> BatchConverter | None:
-        """Choose standard or model-assisted local conversion."""
-
-        if not self.intelligence_checkbox.isChecked():
-            return self._batch_converter
-
-        if self._intelligence_converter is None:
-            self._show_error(
-                "Local image analysis is not ready. Turn it off to continue "
-                "with standard local conversion."
-            )
-            return None
-        return self._intelligence_converter
 
     @Slot(object)
     def _conversion_finished(self, batch: BatchConversionResult) -> None:
@@ -1084,7 +968,6 @@ class MainWindow(QMainWindow):
         self.choose_output_button.setDisabled(busy)
         self.convert_button.setDisabled(busy)
         self.export_button.setDisabled(busy)
-        self.intelligence_checkbox.setDisabled(busy)
 
     def _update_actions(self) -> None:
         busy = self._thread is not None
@@ -1104,8 +987,6 @@ class MainWindow(QMainWindow):
         self.remove_button.setEnabled(bool(self._files) and not busy)
         self.clear_button.setEnabled(bool(self._files) and not busy)
         self.copy_button.setEnabled(bool(self.preview.toPlainText()))
-        if not busy:
-            self._update_intelligence_availability()
 
     def _reset_preview_if_needed(self) -> None:
         selected = self.file_tree.selectedItems()

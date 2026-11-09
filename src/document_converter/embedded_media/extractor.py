@@ -1,4 +1,4 @@
-"""Extract analyzable images from supported local document containers."""
+"""Extract images from local document containers for Markdown embedding."""
 
 from __future__ import annotations
 
@@ -9,7 +9,10 @@ from pathlib import Path
 from typing import Any
 from zipfile import BadZipFile, ZipFile
 
-from .service import SUPPORTED_IMAGE_FORMATS
+
+SUPPORTED_IMAGE_FORMATS = frozenset(
+    {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".svg"}
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,7 +22,7 @@ class ExtractedImage:
 
 
 class DocumentImageExtractor:
-    """Extract OOXML media or render PDF pages into a caller-owned directory."""
+    """Extract OOXML media or render PDF pages into a temporary directory."""
 
     _MEDIA_PREFIXES = {
         ".docx": "word/media/",
@@ -79,7 +82,7 @@ class DocumentImageExtractor:
             import pypdfium2 as pdfium
         except ImportError as exc:
             raise RuntimeError(
-                "PDF page rendering requires the installed PDF runtime"
+                "PDF page embedding requires the installed PDF runtime"
             ) from exc
 
         document: Any = pdfium.PdfDocument(str(source))
