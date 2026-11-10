@@ -60,17 +60,20 @@ class EmbeddedMediaDocumentConverter(BaseConverter):
             images = self._extractor.extract(file_path, Path(temporary))
             sections = [_render_image(image) for image in images]
 
-        markdown = base_result.markdown.rstrip()
+        # Media embedding must not normalize text produced by the converter.
+        # Trailing spaces can encode Markdown hard breaks or preformatted data.
+        markdown = base_result.markdown
         if sections:
+            separator = "" if markdown.endswith("\n\n") else (
+                "\n" if markdown.endswith("\n") else "\n\n"
+            )
             markdown += (
-                "\n\n---\n\n# Embedded document images\n\n"
+                separator + "---\n\n# Embedded document images\n\n"
                 "> Images are stored inside this Markdown file as Base64 data URIs. "
                 "A compatible Markdown or multimodal AI client can decode them.\n\n"
                 + "\n\n".join(sections)
                 + "\n"
             )
-        elif base_result.markdown.endswith("\n"):
-            markdown += "\n"
 
         return ConversionResult(
             source_path=base_result.source_path,

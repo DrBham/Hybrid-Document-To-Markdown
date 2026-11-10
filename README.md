@@ -6,8 +6,8 @@
 
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
-[![Development Status](https://img.shields.io/badge/status-Phase%20E%20Complete-16A34A?style=for-the-badge)](#-roadmap)
-[![Tests](https://img.shields.io/badge/tests-80%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
+[![Development Status](https://img.shields.io/badge/status-Quality%20Q2%20WIP-D97706?style=for-the-badge)](#-roadmap)
+[![Tests](https://img.shields.io/badge/tests-92%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
 [![MarkItDown](https://img.shields.io/badge/MarkItDown-0.1.9-2563EB?style=flat-square)](https://github.com/microsoft/markitdown)
@@ -30,7 +30,7 @@
 ---
 
 > [!IMPORTANT]
-> Phase E is complete with automatic single-file image embedding. The application converts documents locally and stores document images directly inside Markdown as Base64 data URIs—without OCR, model downloads, training, or cloud inference.
+> Phase E's single-file image workflow is implemented. Conversion quality hardening is now in progress: Q1 audit and the first whitespace fix are complete; Q2 shared quality infrastructure is WIP. Conversion remains local, with Base64 support and no configured OCR, model training, or cloud inference. See the [evidence-based audit](docs/CONVERSION_QUALITY_AUDIT.md) and [changelog](CHANGELOG.md).
 
 > [!NOTE]
 > This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
@@ -114,14 +114,15 @@
 <li>Single-file Markdown output with Base64-embedded images</li>
 <li>No OCR runtime, model pack, dataset, or training requirement</li>
 <li>Real DOCX image-to-Base64 integration coverage</li>
-<li>80 passing automated tests</li>
+<li>92 passing automated tests; complex-format fidelity is still being improved</li>
 </ul>
 </td>
 <td width="50%" valign="top">
 <h3>🚧 WIP &amp; planned</h3>
 <ul>
 <li><strong>Completed — Phase E:</strong> preserve images inside one Markdown file</li>
-<li><strong>Planned — Phase F:</strong> Windows packaging and release validation</li>
+<li><strong>WIP — Quality Q2:</strong> shared quality infrastructure after the Q1 audit</li>
+<li><strong>Planned — Phase F:</strong> Windows packaging after quality hardening</li>
 <li><strong>Planned:</strong> compatibility testing with major multimodal AI clients</li>
 </ul>
 </td>
@@ -185,7 +186,7 @@ The conversion path is fully local. MarkItDown converts document text, while `Do
 <p>No API key is required for local conversion.</p>
 <h3 id="run-the-tests">🧪 Test</h3>
 <pre><code>python -m pytest -q</code></pre>
-<p>Expected: <code>80 passed</code></p>
+<p>Last verified: <code>92 passed</code> (2026-11-10)</p>
 </td>
 <td width="62%" valign="top">
 <h3 id="installation">📦 Installation</h3>
@@ -226,7 +227,7 @@ The generated Markdown contains entries such as:
 ![Embedded image: diagram.png](data:image/png;base64,iVBORw0KGgo...)
 ```
 
-The characters after `base64,` are the original image bytes represented as text. A compatible Markdown renderer or multimodal AI platform can decode them back into an image.
+The characters after `base64,` encode the extracted image bytes. Supported OOXML media are copied without recompression; PDF images in this workflow are newly rendered page PNGs, not the original embedded image bytes. Decoding or displaying these payloads depends on the receiving client; uploading a `.md` file does not guarantee that an AI chat will inspect its images.
 
 > [!IMPORTANT]
 > Base64 is encoding, not encryption or OCR. It preserves the original visual but does not describe its meaning. Uploading the Markdown to a third-party AI also subjects its contents to that provider's privacy policy.
@@ -382,6 +383,9 @@ This design provides:
 │       ├── PressStart2P-OFL.txt
 │       └── PressStart2P-FONTLOG.txt
 ├── tests/
+├── tools/audit_conversion_quality.py
+├── docs/CONVERSION_QUALITY_AUDIT.md
+├── CHANGELOG.md
 ├── pytest.ini
 ├── requirements.in
 ├── requirements.txt
@@ -392,6 +396,10 @@ This design provides:
 ## 🧪 Testing
 
 The test suite focuses on application behavior and third-party integration boundaries. It does not pretend to test MarkItDown's internal algorithms as original project code.
+
+Audit baseline: **80 passed**. After preserving whitespace in the media decorator: **92 passed**, including the offscreen GUI conversion/export workflow. Eight regression cases fail against the old decorator. Passing smoke tests do not establish source fidelity for complex documents.
+
+Run reproducible synthetic probes with `python tools/audit_conversion_quality.py`. The script prints source/output comparisons and removes its temporary fixtures; it is not an accuracy benchmark. See the [audit](docs/CONVERSION_QUALITY_AUDIT.md) for observed losses and the measurement plan.
 
 <table>
 <tr>
@@ -438,7 +446,7 @@ python -m pytest -q
 <ul>
 <li>Conversion and image embedding need no API key.</li>
 <li>Documents are not uploaded by the application.</li>
-<li>No OCR model, training dataset, or inference runtime is installed.</li>
+<li>The application does not configure or use an OCR model, training dataset, or inference runtime.</li>
 <li>Images are encoded locally and remain inside the exported Markdown.</li>
 <li>Users choose whether to upload the result to a third-party AI.</li>
 </ul>
@@ -451,6 +459,11 @@ python -m pytest -q
 <li>Base64 output is larger than the original binary image data.</li>
 <li>The application preserves images but does not interpret diagrams or run OCR.</li>
 <li>Complex layouts may lose fidelity.</li>
+<li>XLSX conversion can change string identifiers and numeric representation, and omit formulas.</li>
+<li>Upstream whitespace normalization still affects TXT and preformatted content; the media decorator now preserves its input exactly.</li>
+<li>CSV multiline cells and non-comma delimiters need improvement; JSON/XML are not yet fenced.</li>
+<li>Images are appended without source placement; local HTML assets are not packaged.</li>
+<li>PDF renders every page; decompressed data, page pixels, and output size do not yet have explicit budgets.</li>
 <li>Encrypted or damaged files may fail.</li>
 <li>The 100 MiB limit is not yet configurable in the GUI.</li>
 </ul>
@@ -488,7 +501,12 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 | C — Conversion core | All MVP formats, validation, same-extension batches, per-file outcomes, and export | ✅ Completed |
 | D — Desktop GUI | Format selection, drag and drop, threaded conversion, status list, preview, Save Markdown workflow, theme, and branding | ✅ Completed |
 | E — Single-file media preservation | Extract document images and embed them as Base64 data URIs in the same Markdown file | ✅ Completed |
-| F — Release | Regression testing, Windows installer, final license audit, compatibility documentation, and GitHub release | 🚧 Next |
+| Quality Q1 | Architecture audit, synthetic fidelity probes, first whitespace regression fix | ✅ Completed |
+| Quality Q2 | Compatible options/warnings, atomic export, resource limits, shared serialization checks | 🚧 WIP |
+| Quality Q3 | Incremental fidelity improvements for all supported formats | Planned |
+| Quality Q4 | Contextual assets, configurable Base64/assets export, PDF image modes | Planned |
+| Quality Q5 | Corpus evaluation, performance, cancellation, security/offline regression | Planned |
+| Quality Q6 / F — Release | Documentation, clean-install checks, Windows packaging, license inventory, compatibility and release validation | Planned after quality gates |
 
 ### Phase E result
 
@@ -500,16 +518,17 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 - PaddleOCR, model packs, datasets, training scripts, and ML dependencies were removed.
 - Real DOCX image embedding and local PDF rendering are covered by tests.
 
-### Next: Phase F
+### Current: Quality Q2
 
-1. Build and measure the Windows executable and installer.
-2. Test maximum practical Markdown sizes for image-heavy documents.
-3. Document compatibility results for ChatGPT, Claude, and common Markdown renderers.
-4. Add clear warnings before users upload private documents to external AI services.
-5. Produce the final dependency and license inventory for the release artifact.
+1. Define backward-compatible conversion options and structured warnings.
+2. Make export atomic while retaining overwrite protection.
+3. Bound decompression/rendering/output resources and verify cleanup on failure.
+4. Add targeted serialization checks, then improve format-specific fidelity in Q3.
+
+Q2 is the active work phase; its implementation checkpoints are still pending. The [full audit and roadmap](docs/CONVERSION_QUALITY_AUDIT.md) defines evidence, severity, regression risk, Phase 1 checkpoints, and acceptance gates. Base64 remains available. Installer work follows these quality gates.
 
 > [!IMPORTANT]
-> This application guarantees that image bytes are preserved in the Markdown data URI. It cannot guarantee that every external AI platform will decode that URI from an uploaded `.md` file.
+> Base64 round-trip preservation is tested for supported extracted media, including a real DOCX PNG. This does not guarantee that every visual element is extracted, that PDF rasterization is lossless, or that an external AI platform will decode images from an uploaded `.md` file.
 
 Development follows this milestone cycle:
 

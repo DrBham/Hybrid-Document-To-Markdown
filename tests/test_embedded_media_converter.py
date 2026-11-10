@@ -2,6 +2,7 @@ import base64
 import re
 from pathlib import Path
 
+import pytest
 from docx import Document
 from PIL import Image
 
@@ -24,6 +25,43 @@ class FakeExtractor:
         image = output_directory / "embedded.png"
         image.write_bytes(b"fixture")
         return (ExtractedImage(image, "Embedded image: diagram.png"),)
+
+
+@pytest.mark.parametrize("with_media", [False, True])
+@pytest.mark.parametrize(
+    "markdown, expected_prefix",
+    [
+        ("", "\n\n"),
+        ("plain", "plain\n\n"),
+        ("hard break  \n", "hard break  \n\n"),
+        ("    code\t  ", "    code\t  \n\n"),
+        ("text\n\n\n", "text\n\n\n"),
+        (" \t\n\n", " \t\n\n"),
+    ],
+)
+def test_media_embedding_preserves_converter_text(
+    tmp_path, markdown, expected_prefix, with_media
+):
+    class TextConverter:
+        def convert(self, source):
+            return ConversionResult(source, "txt", markdown)
+
+    class OptionalExtractor(FakeExtractor):
+        def extract(self, source, output_directory):
+            return super().extract(source, output_directory) if with_media else ()
+
+    result = EmbeddedMediaDocumentConverter(
+        TextConverter(), OptionalExtractor()
+    ).convert(tmp_path / "source.txt")
+
+    if with_media:
+        prefix, media = result.markdown.split("---\n\n# Embedded document images", 1)
+        assert prefix == expected_prefix
+        payload = re.search(r"data:image/png;base64,([A-Za-z0-9+/=]+)", media)
+        assert payload is not None
+        assert base64.b64decode(payload.group(1)) == b"fixture"
+    else:
+        assert result.markdown == markdown
 
 
 def test_encodes_image_as_base64_data_uri(tmp_path):
@@ -80,4 +118,4 @@ def test_default_router_embeds_real_docx_image_in_markdown(tmp_path):
     match = re.search(r"data:image/png;base64,([A-Za-z0-9+/=]+)", result.markdown)
     assert match is not None
     decoded = base64.b64decode(match.group(1))
-    assert decoded.startswith(b"\x89PNG\r\n\x1a\n")
+    assert decoded == image.read_bytes()
