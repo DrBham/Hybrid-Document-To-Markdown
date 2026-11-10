@@ -443,6 +443,11 @@ class MainWindow(QMainWindow):
         self.progress.setAccessibleName("Conversion in progress")
         self.progress.hide()
         action_row.addWidget(self.progress, stretch=1)
+        self.cancel_button = QPushButton("Cancel remaining")
+        self.cancel_button.setToolTip("Finish the current file and cancel the remaining files")
+        self.cancel_button.clicked.connect(self._batch_converter.cancel)
+        self.cancel_button.hide()
+        action_row.addWidget(self.cancel_button)
 
         self.convert_button = QPushButton("Convert files")
         self.convert_button.setObjectName("primaryButton")
@@ -733,6 +738,7 @@ class MainWindow(QMainWindow):
         )
 
         self._thread = QThread(self)
+        self._batch_converter.reset_cancellation()
         self._worker = ConversionWorker(
             self._batch_converter,
             tuple(self._files),
@@ -758,7 +764,8 @@ class MainWindow(QMainWindow):
         for outcome in batch.outcomes:
             item = self._items[self._path_key(outcome.source_path)]
             if outcome.succeeded:
-                item.setText(3, "Converted")
+                item.setText(3, "Converted with warnings" if outcome.result.warnings else "Converted")
+                item.setToolTip(3, "\n".join(outcome.result.warnings))
             else:
                 item.setText(3, "Failed")
                 item.setToolTip(3, outcome.error or "Conversion failed")
@@ -829,12 +836,16 @@ class MainWindow(QMainWindow):
     def _display_outcome(self, outcome: FileConversionOutcome) -> None:
         self._set_preview_filename(outcome.source_path)
         if outcome.succeeded and outcome.result is not None:
-            self.preview.setPlainText(outcome.result.markdown)
+            preview_limit = 200_000
+            self.preview.setPlainText(outcome.result.markdown[:preview_limit])
             lines = outcome.result.markdown.count("\n") + 1
             characters = len(outcome.result.markdown)
             self.preview_summary.setText(
                 f"{lines} lines · {characters} characters"
+                + (" · Preview shortened; Copy and Save retain full content" if characters > preview_limit else "")
+                + (f" · {len(outcome.result.warnings)} warning(s)" if outcome.result.warnings else "")
             )
+            self.preview_summary.setToolTip("\n".join(outcome.result.warnings))
         else:
             self.preview.setPlainText(outcome.error or "Conversion failed")
             self.preview_summary.setText("Conversion failed — review the message")
@@ -850,6 +861,12 @@ class MainWindow(QMainWindow):
     @Slot()
     def _copy_preview(self) -> None:
         text = self.preview.toPlainText()
+        selected = self.file_tree.selectedItems()
+        if selected:
+            path = Path(selected[0].data(0, Qt.ItemDataRole.UserRole))
+            outcome = self._outcomes.get(self._path_key(path))
+            if outcome and outcome.result:
+                text = outcome.result.markdown
         if not text:
             return
         QApplication.clipboard().setText(text)
@@ -961,6 +978,7 @@ class MainWindow(QMainWindow):
         return targets
 
     def _set_busy(self, busy: bool) -> None:
+        self.cancel_button.setVisible(busy)
         self.progress.setVisible(busy)
         self.drop_zone.browse_button.setDisabled(busy)
         self.remove_button.setDisabled(busy)

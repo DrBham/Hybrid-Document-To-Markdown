@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 
 from ..core.base_converter import BaseConverter
 from ..core.models import ConversionResult
+from ..core.options import ConversionOptions
 from .extractor import DocumentImageExtractor, ExtractedImage
 
 
@@ -50,15 +51,32 @@ class EmbeddedMediaDocumentConverter(BaseConverter):
         self,
         base_converter: BaseConverter,
         extractor: DocumentImageExtractor | None = None,
+        *, options: ConversionOptions | None = None,
     ):
+        self.options = options or ConversionOptions()
         self._base_converter = base_converter
-        self._extractor = extractor or DocumentImageExtractor()
+        self._extractor = extractor or DocumentImageExtractor(options=self.options)
 
     def convert(self, file_path: Path) -> ConversionResult:
         base_result = self._base_converter.convert(file_path)
+        warnings = list(base_result.warnings)
+        if file_path.suffix.lower() == ".pdf":
+            if not base_result.markdown.strip():
+                warnings.append("No PDF text layer was extracted. Images are not OCR text.")
+            if self.options.pdf_mode == "images":
+                warnings.append("PDF image extraction may re-encode images and omit masks/vector artwork; use pages mode for page appearance.")
+            warnings.append("PDF reading order and complex tables require source review.")
         with TemporaryDirectory(prefix="hybrid-document-media-") as temporary:
             images = self._extractor.extract(file_path, Path(temporary))
-            sections = [_render_image(image) for image in images]
+            sections = []
+            used = len(base_result.markdown.encode("utf-8"))
+            for image in images:
+                expected = 4 * ((image.path.stat().st_size + 2) // 3)
+                if used + expected > self.options.max_output_bytes:
+                    raise ValueError("Embedded images exceed max_output_bytes")
+                section = _render_image(image)
+                used += len(section.encode("utf-8"))
+                sections.append(section)
 
         # Media embedding must not normalize text produced by the converter.
         # Trailing spaces can encode Markdown hard breaks or preformatted data.
@@ -79,4 +97,5 @@ class EmbeddedMediaDocumentConverter(BaseConverter):
             source_path=base_result.source_path,
             source_format=base_result.source_format,
             markdown=markdown,
+            warnings=tuple(warnings),
         )

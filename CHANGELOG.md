@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — Q2–Q5 implementation checkpoints
+
+- Add conversion policies, result warnings, resource budgets and atomic Markdown export.
+- Preserve TXT whitespace; fence JSON/XML; retain original CSV and multiline cells; preserve XLSX string values, formulas, cache metadata, merges and worksheet selection.
+- Preserve HTML preformatted text, embed allowed local images, and report unresolved assets/links.
+- Add OOXML media provenance, PDF pages/images/text modes, and optional deduplicated Markdown/assets ZIP export.
+- Add cooperative batch cancellation and bounded GUI preview with complete clipboard/export content.
+- Add fault-injection, fidelity, privacy, resource, media and GUI regression tests; 119 tests pass.
+- Add isolated ten-format timing/memory corpus and document remaining complex-format acceptance work.
+- Repair README navigation with explicit anchors and correct links to installation, requirements and tests.
+
 ## Unreleased — Conversion quality audit
 
 - Preserve converter output exactly in the embedded-media decorator, including trailing spaces, tabs, and blank lines. Add only the separator needed before the media appendix.

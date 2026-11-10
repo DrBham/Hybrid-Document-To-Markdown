@@ -2,6 +2,7 @@
 
 from collections.abc import Iterable
 from pathlib import Path
+from threading import Event
 
 from ..core.models import (
     BatchConversionResult,
@@ -15,6 +16,14 @@ class BatchConverter:
 
     def __init__(self, router: ConverterRouter | None = None):
         self._router = router if router is not None else ConverterRouter()
+        self._cancelled = Event()
+
+    def cancel(self) -> None:
+        """Stop before the next file; never kill a parser thread mid-write."""
+        self._cancelled.set()
+
+    def reset_cancellation(self) -> None:
+        self._cancelled.clear()
 
     def convert(self, file_paths: Iterable[Path]) -> BatchConversionResult:
         """Convert a non-empty batch whose extensions all match."""
@@ -35,6 +44,9 @@ class BatchConverter:
         outcomes: list[FileConversionOutcome] = []
 
         for path in paths:
+            if self._cancelled.is_set():
+                outcomes.append(FileConversionOutcome(source_path=path, error="Cancelled before conversion"))
+                continue
             try:
                 result = self._router.convert(path)
             except Exception as exc:

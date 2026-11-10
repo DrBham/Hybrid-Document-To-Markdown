@@ -1,5 +1,7 @@
 
 from pathlib import Path
+import os
+from tempfile import NamedTemporaryFile
 
 
 class MarkdownExporter:
@@ -21,10 +23,22 @@ class MarkdownExporter:
                 f"Output file already exists: {output_path}"
             )
 
-        if overwrite:
-            output_path.write_text(markdown, encoding="utf-8")
-        else:
-            with output_path.open("x", encoding="utf-8") as file:
+        temporary = None
+        try:
+            with NamedTemporaryFile(mode="w", encoding="utf-8", newline="",
+                                    dir=output_path.parent, prefix=".markdown-", suffix=".tmp",
+                                    delete=False) as file:
+                temporary = Path(file.name)
                 file.write(markdown)
+                file.flush()
+                os.fsync(file.fileno())
+            if overwrite:
+                os.replace(temporary, output_path)
+            else:
+                # Publishing a hard link fails atomically if another writer wins.
+                os.link(temporary, output_path)
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
 
         return output_path

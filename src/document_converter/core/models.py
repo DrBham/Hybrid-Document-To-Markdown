@@ -10,6 +10,7 @@ class ConversionResult:
     source_path: Path
     source_format: str
     markdown: str
+    warnings: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

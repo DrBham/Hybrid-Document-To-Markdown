@@ -216,3 +216,19 @@ def test_export_targets_disambiguate_duplicate_source_names(window, tmp_path):
         "report.md",
         "report (2).md",
     ]
+
+
+def test_large_preview_copies_and_exports_complete_result(window, app, tmp_path):
+    source = create_files(tmp_path, "large.txt")[0]
+    window.add_files([source])
+    text = "x" * 200_010 + "END"
+    result = ConversionResult(source.resolve(), "txt", text, ("Example warning",))
+    window._conversion_finished(BatchConversionResult(".txt", (FileConversionOutcome(source.resolve(), result=result),)))
+    assert len(window.preview.toPlainText()) == 200_000
+    assert "Preview shortened" in window.preview_summary.text()
+    assert window.file_tree.topLevelItem(0).text(3) == "Converted with warnings"
+    window._copy_preview()
+    assert app.clipboard().text() == text
+    window.output_path.setText(str(tmp_path))
+    window._export_successful()
+    assert (tmp_path / "large.md").read_text() == text

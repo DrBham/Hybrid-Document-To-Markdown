@@ -6,13 +6,13 @@
 
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
-[![Development Status](https://img.shields.io/badge/status-Quality%20Q2%20WIP-D97706?style=for-the-badge)](#-roadmap)
-[![Tests](https://img.shields.io/badge/tests-92%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
+[![Development Status](https://img.shields.io/badge/status-Quality%20Hardening%20WIP-D97706?style=for-the-badge)](#-roadmap)
+[![Tests](https://img.shields.io/badge/tests-119%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
 [![MarkItDown](https://img.shields.io/badge/MarkItDown-0.1.9-2563EB?style=flat-square)](https://github.com/microsoft/markitdown)
 [![PySide6](https://img.shields.io/badge/PySide6-6.12-41CD52?style=flat-square&logo=qt&logoColor=white)](https://doc.qt.io/qtforpython-6/)
-[![Platform](https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows&logoColor=white)](#-requirements)
+[![Platform](https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows&logoColor=white)](#requirements)
 [![License](https://img.shields.io/badge/license-MIT-F59E0B?style=flat-square)](LICENSE)
 
 **Convert common documents into readable Markdown without rebuilding format-specific parsers from scratch.**<br>
@@ -30,7 +30,7 @@
 ---
 
 > [!IMPORTANT]
-> Phase E's single-file image workflow is implemented. Conversion quality hardening is now in progress: Q1 audit and the first whitespace fix are complete; Q2 shared quality infrastructure is WIP. Conversion remains local, with Base64 support and no configured OCR, model training, or cloud inference. See the [evidence-based audit](docs/CONVERSION_QUALITY_AUDIT.md) and [changelog](CHANGELOG.md).
+> Quality hardening now includes atomic export, bounded conversion policies, faithful text/structured-data paths, media options, and batch cancellation. **119 tests pass**. Complex-layout acceptance work remains in progress; see the [implementation report](docs/QUALITY_IMPLEMENTATION.md), [historical audit](docs/CONVERSION_QUALITY_AUDIT.md), and [changelog](CHANGELOG.md). Base64 remains the default.
 
 > [!NOTE]
 > This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
@@ -42,10 +42,10 @@
 - [Supported Formats](#-supported-formats)
 - [How Conversion Works](#-how-conversion-works)
 - [Quick Start](#-quick-start)
-  - [Requirements](#-requirements)
-  - [Installation](#-installation)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
   - [Run the Desktop App](#-run-the-desktop-app)
-  - [Run the Tests](#-run-the-tests)
+  - [Run the Tests](#run-the-tests)
   - [Use the Core API](#-use-the-core-api)
 - [Batch Rules and Validation](#-batch-rules-and-validation)
 - [Architecture](#-architecture)
@@ -56,6 +56,8 @@
 - [Roadmap](#-roadmap)
 - [Engineering Principles](#-engineering-principles)
 - [License and Credits](#-license-and-credits)
+
+<a id="-overview"></a>
 
 ## 🔎 Overview
 
@@ -74,7 +76,7 @@
 </td>
 <td width="50%" valign="top">
 <h3>💡 Why it exists</h3>
-<p>Maintaining a custom parser for every format is expensive. This project delegates parsing to MarkItDown and focuses on user experience, reliability, testing, and Windows delivery.</p>
+<p>The project combines established document parsers with focused fidelity paths for text and structured data, supported by a local desktop workflow and regression tests.</p>
 <ul>
 <li>Local-first processing</li>
 <li>Predictable validation</li>
@@ -87,7 +89,9 @@
 </table>
 
 > [!NOTE]
-> Earlier custom TXT-converter code remains as a learning milestone. MarkItDown is the production engine.
+> Earlier heuristic TXT-converter code remains as a learning milestone. Production uses dedicated fidelity paths alongside MarkItDown for Office/PDF documents.
+
+<a id="-feature-status"></a>
 
 ## ✨ Feature Status
 
@@ -114,14 +118,15 @@
 <li>Single-file Markdown output with Base64-embedded images</li>
 <li>No OCR runtime, model pack, dataset, or training requirement</li>
 <li>Real DOCX image-to-Base64 integration coverage</li>
-<li>92 passing automated tests; complex-format fidelity is still being improved</li>
+<li>119 passing automated tests; complex-format fidelity is still being improved</li>
 </ul>
 </td>
 <td width="50%" valign="top">
 <h3>🚧 WIP &amp; planned</h3>
 <ul>
 <li><strong>Completed — Phase E:</strong> preserve images inside one Markdown file</li>
-<li><strong>WIP — Quality Q2:</strong> shared quality infrastructure after the Q1 audit</li>
+<li><strong>Implemented — Quality Q2:</strong> options, warnings, atomic export and resource safeguards</li>
+<li><strong>WIP — Quality Q3–Q5:</strong> advanced format fidelity, contextual assets and broader evaluation</li>
 <li><strong>Planned — Phase F:</strong> Windows packaging after quality hardening</li>
 <li><strong>Planned:</strong> compatibility testing with major multimodal AI clients</li>
 </ul>
@@ -129,25 +134,29 @@
 </tr>
 </table>
 
+<a id="-supported-formats"></a>
+
 ## 🗃️ Supported Formats
 
 Representative integration coverage exists for every MVP format.
 
 | Category | Extensions | Dependency path | Verification |
 |---|---|---|:---:|
-| Plain text | `.txt` | MarkItDown core | ✅ Passed |
+| Plain text | `.txt` | Strict decoded source preservation | ✅ Passed |
 | Word | `.docx` | `markitdown[docx]` | ✅ Passed |
 | PDF | `.pdf` | `markitdown[pdf]` | ✅ Text-based PDF passed |
 | PowerPoint | `.pptx` | `markitdown[pptx]` | ✅ Passed |
 | Excel | `.xlsx` | `markitdown[xlsx]` | ✅ Passed |
-| Tabular data | `.csv` | MarkItDown core | ✅ Passed |
-| Web documents | `.html`, `.htm` | MarkItDown core | ✅ Passed |
-| Structured text | `.json`, `.xml` | MarkItDown core | ✅ Passed |
+| Tabular data | `.csv` | String fields + original source appendix | ✅ Passed |
+| Web documents | `.html`, `.htm` | Local HTML adapter + MarkItDown HTML parser | ✅ Passed |
+| Structured text | `.json`, `.xml` | Source-preserving fenced text | ✅ Passed |
 
 > [!WARNING]
 > “Supported” does not mean perfect visual fidelity. Embedded images are preserved as Base64, not interpreted. Whether an AI chat decodes a Markdown data URI depends on that platform.
 
 Emails, archives, audio, EPUB, LOG files, and standalone image conversion are outside the committed MVP scope.
+
+<a id="-how-conversion-works"></a>
 
 ## 🔄 How Conversion Works
 
@@ -157,7 +166,7 @@ flowchart LR
     B --> C{Same extension?}
     C -- No --> X[Reject batch]
     C -- Yes --> D[Converter router]
-    D --> E[Microsoft MarkItDown text conversion]
+    D --> E[Format-specific fidelity paths / MarkItDown]
     D --> I[Local document image extraction]
     I --> O[Base64 data URI encoding]
     E --> M[Merge into one Markdown file]
@@ -169,7 +178,9 @@ flowchart LR
     UI[PySide6 GUI] -. controls .-> A
 ```
 
-The conversion path is fully local. MarkItDown converts document text, while `DocumentImageExtractor` retrieves OOXML media or renders PDF pages. `EmbeddedMediaDocumentConverter` encodes each image as a Base64 `data:` URI and appends it to the same Markdown result.
+The conversion path is local. TXT/JSON/XML/CSV/XLSX use dedicated fidelity paths; HTML/HTM preserve preformatted text and permitted local images. MarkItDown handles DOCX/PPTX/PDF text. `DocumentImageExtractor` retrieves OOXML media or PDF visuals; the media decorator embeds them as Base64. Limits reject oversized processing explicitly.
+
+<a id="-quick-start"></a>
 
 ## 🚀 Quick Start
 
@@ -186,7 +197,7 @@ The conversion path is fully local. MarkItDown converts document text, while `Do
 <p>No API key is required for local conversion.</p>
 <h3 id="run-the-tests">🧪 Test</h3>
 <pre><code>python -m pytest -q</code></pre>
-<p>Last verified: <code>92 passed</code> (2026-11-10)</p>
+<p>Last verified: <code>119 passed</code></p>
 </td>
 <td width="62%" valign="top">
 <h3 id="installation">📦 Installation</h3>
@@ -205,6 +216,8 @@ python -m pip check</code></pre>
 
 > [!NOTE]
 > The root-level `pytest.ini` adds `src` to pytest's import path. It is configuration, not a generated cache file.
+
+<a id="-run-the-desktop-app"></a>
 
 ### 🖥️ Run the Desktop App
 
@@ -235,7 +248,11 @@ The characters after `base64,` encode the extracted image bytes. Supported OOXML
 > [!WARNING]
 > Base64 increases binary size by roughly one third, and not every AI chat accepts or renders data URIs from an uploaded `.md` file. Large PDFs can therefore produce very large Markdown files.
 
+<a id="-use-the-core-api"></a>
+
 ### 🧑‍💻 Use the Core API
+
+See [advanced options and asset ZIP export](docs/QUALITY_IMPLEMENTATION.md#api-and-compatibility) for encoding, delimiter, PDF mode, formula/cache view, sheet selection, resource budgets, and portable assets. These advanced options are available through the core API; the GUI keeps its Base64 workflow.
 
 > [!NOTE]
 > The desktop app is the recommended interactive workflow. The examples below show how to reuse the tested Python core directly.
@@ -293,6 +310,8 @@ $env:PYTHONPATH = "src"
 python .\your_script.py
 ```
 
+<a id="-batch-rules-and-validation"></a>
+
 ## 🛡️ Batch Rules and Validation
 
 <table>
@@ -323,6 +342,8 @@ python .\your_script.py
 </tr>
 </table>
 
+<a id="-architecture"></a>
+
 ## 🏗️ Architecture
 
 | Layer | Responsibility | Main components |
@@ -346,6 +367,8 @@ This design provides:
 - Clear ownership boundaries
 - Lower migration cost if the engine API changes
 - Reusable core logic for the desktop GUI and future integrations
+
+<a id="-project-structure"></a>
 
 ## 🗂️ Project Structure
 
@@ -393,13 +416,17 @@ This design provides:
 └── README.md
 ```
 
+<a id="-testing"></a>
+
 ## 🧪 Testing
 
 The test suite focuses on application behavior and third-party integration boundaries. It does not pretend to test MarkItDown's internal algorithms as original project code.
 
-Audit baseline: **80 passed**. After preserving whitespace in the media decorator: **92 passed**, including the offscreen GUI conversion/export workflow. Eight regression cases fail against the old decorator. Passing smoke tests do not establish source fidelity for complex documents.
+Q1 baseline: **80 → 92 passed**. Current suite: **119 passed**, including atomic-export failures, format fidelity, PDF modes, budgets, package round-trips, and complete copy/export from a shortened GUI preview. Passing smoke tests do not establish source fidelity for every complex document.
 
 Run reproducible synthetic probes with `python tools/audit_conversion_quality.py`. The script prints source/output comparisons and removes its temporary fixtures; it is not an accuracy benchmark. See the [audit](docs/CONVERSION_QUALITY_AUDIT.md) for observed losses and the measurement plan.
+
+Run `python tools/evaluate_quality.py` for isolated ten-format checks, conversion time and process peak memory. The [implementation report](docs/QUALITY_IMPLEMENTATION.md) records measured results and pending acceptance work.
 
 <table>
 <tr>
@@ -437,6 +464,8 @@ python -m pytest -q
 > [!NOTE]
 > A local passing test badge is shown at the top because this repository does not yet have a GitHub Actions workflow. A live CI badge should replace it after CI is configured.
 
+<a id="-privacy-and-limitations"></a>
+
 ## 🔐 Privacy and Limitations
 
 <table>
@@ -459,11 +488,13 @@ python -m pytest -q
 <li>Base64 output is larger than the original binary image data.</li>
 <li>The application preserves images but does not interpret diagrams or run OCR.</li>
 <li>Complex layouts may lose fidelity.</li>
-<li>XLSX conversion can change string identifiers and numeric representation, and omit formulas.</li>
-<li>Upstream whitespace normalization still affects TXT and preformatted content; the media decorator now preserves its input exactly.</li>
-<li>CSV multiline cells and non-comma delimiters need improvement; JSON/XML are not yet fenced.</li>
-<li>Images are appended without source placement; local HTML assets are not packaged.</li>
-<li>PDF renders every page; decompressed data, page pixels, and output size do not yet have explicit budgets.</li>
+<li>XLSX preserves string identifiers and formulas; numeric values already rounded in Excel cannot be recovered. Formula caches can be absent or stale.</li>
+<li>TXT uses strict explicit decoding. Select another encoding through the API when required.</li>
+<li>CSV includes its original source; ambiguous delimiters require an explicit choice.</li>
+<li>OOXML images carry owner-part provenance in an appendix; full inline caption placement remains pending.</li>
+<li>PDF defaults to page images. Optional image extraction may omit masks/vector artwork; text mode omits visuals.</li>
+<li>Resource budgets reject oversized conversions but do not impose a hard process RAM/time limit.</li>
+<li>Cancel remaining finishes the current file. Preview is limited to 200,000 characters; Copy and Save retain all content.</li>
 <li>Encrypted or damaged files may fail.</li>
 <li>The 100 MiB limit is not yet configurable in the GUI.</li>
 </ul>
@@ -473,6 +504,8 @@ python -m pytest -q
 
 > [!IMPORTANT]
 > Conversion remains local, but privacy is no longer under this application's control after a user uploads the exported Markdown to ChatGPT, Claude, or another external service.
+
+<a id="-technology-stack"></a>
 
 ## 🧰 Technology Stack
 
@@ -485,12 +518,14 @@ python -m pytest -q
 | DOCX | Mammoth through `markitdown[docx]` | Word conversion |
 | PDF | pdfminer.six and pdfplumber through `markitdown[pdf]` | Text-based PDF conversion |
 | PowerPoint | python-pptx through `markitdown[pptx]` | PPTX conversion |
-| Excel | pandas and openpyxl through `markitdown[xlsx]` | XLSX conversion |
+| Excel | openpyxl | Cell values, formulas, cached values and metadata |
 | Testing | pytest | Unit and integration tests |
 | Version control | Git and GitHub | History and collaboration |
 | Target OS | Windows | Development and release target |
 
 Direct dependencies are declared in `requirements.in`; the reproducible development snapshot is pinned in `requirements.txt`. There is no separate machine-learning dependency layer.
+
+<a id="-roadmap"></a>
 
 ## 🗺️ Roadmap
 
@@ -502,10 +537,10 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 | D — Desktop GUI | Format selection, drag and drop, threaded conversion, status list, preview, Save Markdown workflow, theme, and branding | ✅ Completed |
 | E — Single-file media preservation | Extract document images and embed them as Base64 data URIs in the same Markdown file | ✅ Completed |
 | Quality Q1 | Architecture audit, synthetic fidelity probes, first whitespace regression fix | ✅ Completed |
-| Quality Q2 | Compatible options/warnings, atomic export, resource limits, shared serialization checks | 🚧 WIP |
-| Quality Q3 | Incremental fidelity improvements for all supported formats | Planned |
-| Quality Q4 | Contextual assets, configurable Base64/assets export, PDF image modes | Planned |
-| Quality Q5 | Corpus evaluation, performance, cancellation, security/offline regression | Planned |
+| Quality Q2 | Options/warnings, atomic export, resource safeguards, shared fence/table serializers | Implemented and tested |
+| Quality Q3 | Text/structured-data fidelity implemented; Office/PDF complex-layout acceptance remains | 🚧 WIP |
+| Quality Q4 | Asset ZIP, provenance and PDF modes implemented; inline caption placement remains | 🚧 WIP |
+| Quality Q5 | 119 tests, ten-format baseline, cancellation/preview implemented; broader stress/golden corpus remains | 🚧 WIP |
 | Quality Q6 / F — Release | Documentation, clean-install checks, Windows packaging, license inventory, compatibility and release validation | Planned after quality gates |
 
 ### Phase E result
@@ -518,14 +553,14 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 - PaddleOCR, model packs, datasets, training scripts, and ML dependencies were removed.
 - Real DOCX image embedding and local PDF rendering are covered by tests.
 
-### Current: Quality Q2
+### Current: Quality Q3–Q5 acceptance
 
-1. Define backward-compatible conversion options and structured warnings.
-2. Make export atomic while retaining overwrite protection.
-3. Bound decompression/rendering/output resources and verify cleanup on failure.
-4. Add targeted serialization checks, then improve format-specific fidelity in Q3.
+1. Expand Office/PDF fixtures for nested/merged structures and multi-column reading order.
+2. Improve inline asset/caption placement from source relationships.
+3. Expand stress, golden-corpus and offline validation beyond the current synthetic baseline.
+4. Complete quality gates before packaging in Q6/F.
 
-Q2 is the active work phase; its implementation checkpoints are still pending. The [full audit and roadmap](docs/CONVERSION_QUALITY_AUDIT.md) defines evidence, severity, regression risk, Phase 1 checkpoints, and acceptance gates. Base64 remains available. Installer work follows these quality gates.
+The [implementation report](docs/QUALITY_IMPLEMENTATION.md) distinguishes delivered checkpoints from pending acceptance work. The [original audit](docs/CONVERSION_QUALITY_AUDIT.md) remains the historical baseline. Base64 remains available; advanced modes do not silently change the GUI default.
 
 > [!IMPORTANT]
 > Base64 round-trip preservation is tested for supported extracted media, including a real DOCX PNG. This does not guarantee that every visual element is extracted, that PDF rasterization is lossless, or that an external AI platform will decode images from an uploaded `.md` file.
@@ -538,6 +573,8 @@ Implement → Test → Document → Commit → Push
 
 After a phase is complete, the next phase becomes WIP.
 
+<a id="-engineering-principles"></a>
+
 ## 🧭 Engineering Principles
 
 - Finish the application before expanding its scope.
@@ -549,6 +586,8 @@ After a phase is complete, the next phase becomes WIP.
 - Treat third-party output and errors as integration boundaries.
 - Keep secrets and generated files out of Git.
 - Document implemented and planned features separately.
+
+<a id="-license-and-credits"></a>
 
 ## 📜 License and Credits
 
