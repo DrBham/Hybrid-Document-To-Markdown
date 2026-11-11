@@ -7,6 +7,37 @@ from .options import ConversionOptions
 from zipfile import ZipFile
 
 
+class _LazyConverter:
+    """Import only the parser needed by this file, especially in short-lived workers."""
+
+    def __init__(self, extension, options):
+        self.extension, self.options = extension, options
+        self.engine = None
+
+    def convert(self, path):
+        if self.engine is None:
+            extension, options = self.extension, self.options
+            if extension in {".txt", ".csv", ".json", ".xml"}:
+                from ..converters.faithful_converter import FaithfulConverter
+                self.engine = FaithfulConverter(options)
+            elif extension in {".html", ".htm"}:
+                from ..converters.local_html_converter import LocalHtmlConverter
+                self.engine = LocalHtmlConverter(options)
+            else:
+                from ..embedded_media.converter import EmbeddedMediaDocumentConverter
+                if extension == ".xlsx":
+                    from ..converters.faithful_converter import FaithfulConverter
+                    base = FaithfulConverter(options)
+                elif extension == ".pdf":
+                    from ..converters.layout_pdf import LayoutPdfConverter
+                    base = LayoutPdfConverter(options)
+                else:
+                    from ..converters.semantic_office import SemanticOfficeConverter
+                    base = SemanticOfficeConverter()
+                self.engine = EmbeddedMediaDocumentConverter(base, options=options)
+        return self.engine.convert(path)
+
+
 class ConverterRouter:
     """Route documents to their registered converters."""
 
@@ -18,25 +49,10 @@ class ConverterRouter:
         self.options = options or ConversionOptions()
         self._default_converters = converters is None
         if converters is None:
-            from ..converters.markitdown_converter import MarkItDownConverter
-            from ..embedded_media.converter import EmbeddedMediaDocumentConverter
-
-            from ..converters.faithful_converter import FaithfulConverter
-            from ..converters.local_html_converter import LocalHtmlConverter
-            from ..converters.semantic_office import SemanticOfficeConverter
-            from ..converters.layout_pdf import LayoutPdfConverter
-            engine = EmbeddedMediaDocumentConverter(MarkItDownConverter(), options=self.options)
             converters = {
-                extension: engine
+                extension: _LazyConverter(extension, self.options)
                 for extension in SUPPORTED_FORMATS
             }
-            for extension in (".txt", ".json", ".xml", ".csv", ".xlsx"):
-                converters[extension] = EmbeddedMediaDocumentConverter(FaithfulConverter(self.options), options=self.options)
-            for extension in (".html", ".htm"):
-                converters[extension] = LocalHtmlConverter(self.options)
-            for extension in (".docx", ".pptx"):
-                converters[extension] = EmbeddedMediaDocumentConverter(SemanticOfficeConverter(), options=self.options)
-            converters[".pdf"] = EmbeddedMediaDocumentConverter(LayoutPdfConverter(self.options), options=self.options)
 
         self.converters = converters
 

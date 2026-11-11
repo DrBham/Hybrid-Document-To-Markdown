@@ -1,0 +1,12 @@
+{
+  "txt": {"source": "# Logs café\r\n\t00123  \r\n\r\n日本語 — α\n```python\nprint('x|y')\n```\n"},
+  "csv": {"source": "id;value;note\r\n00123;1.2300;\"a|b\n日本語\"\r\n", "contains": ["| id | value | note |", "| 00123 | 1.2300 | a\\|b<br>日本語 |", "id;value;note\r\n00123;1.2300;\"a|b\n日本語\"\r\n"]},
+  "json": {"source": "{\"id\":\"00123\",\"n\":9007199254740993,\"nested\":[null,true,{\"text\":\"日本語\"}]}", "markdown": "```json\n{\"id\":\"00123\",\"n\":9007199254740993,\"nested\":[null,true,{\"text\":\"日本語\"}]}\n```\n"},
+  "xml": {"source": "<!DOCTYPE r [<!ENTITY ext SYSTEM \"https://invalid.example/secret\">]><r xmlns:x=\"urn:test\"><x:v id=\"00123\"><![CDATA[a < b]]></x:v>&ext;</r>", "markdown": "```xml\n<!DOCTYPE r [<!ENTITY ext SYSTEM \"https://invalid.example/secret\">]><r xmlns:x=\"urn:test\"><x:v id=\"00123\"><![CDATA[a < b]]></x:v>&ext;</r>\n```\n"},
+  "html": {"source": "<h1>Network café</h1><p>Start 日本語</p><table><tr><th colspan=\"2\">Inventory</th></tr><tr><td>00123</td><td>1.2300</td></tr></table><pre>  x|y  \n\nend</pre><img src=\"diagram.png\"><p>Figure 1</p><img src=\"https://invalid.example/image.png\"><a href=\"javascript:alert(1)\">Unsafe</a><script>SECRET_SCRIPT</script>", "contains": ["# Network café", "colspan=\"2\"", "00123", "1.2300", "  x|y  \n\nend"], "ordered": ["Start 日本語", "Inventory", "Figure 1"], "absent": ["SECRET_SCRIPT", "javascript:"]},
+  "htm": {"source": "<h1>Notes</h1><ul><li>Parent<ul><li>Child 日本語</li></ul></li></ul><blockquote>Quoted café</blockquote><a href=\"https://invalid.example/\">Reference</a><img src=\"diagram.png\">", "contains": ["# Notes", "Child 日本語", "> Quoted café", "[Reference](https://invalid.example/)"], "ordered": ["Parent", "Child 日本語", "Quoted café"]},
+  "docx": {"contains": ["# Network café", "colspan=\"2\"", "00123", "1.2300", "Router"], "ordered": ["Start 日本語", "Inventory", "Figure 1: topology", "End"]},
+  "pptx": {"contains": ["Network café", "00123", "1.2300", "Speaker 日本語"], "ordered": ["Network café", "00123", "Speaker 日本語", "Second slide"]},
+  "xlsx": {"contains": ["| 00123 | 1.2300 | =1+2 |", "A4:B4", "Merged 日本語", "Image anchored at D5", "\"cached_value\": null"], "ordered": ["## Inventory", "00123", "## Second", "End"]},
+  "pdf": {"ordered": ["LEFT FIRST", "LEFT SECOND", "RIGHT FIRST", "RIGHT SECOND"], "contains": ["## Page 1"]}
+}

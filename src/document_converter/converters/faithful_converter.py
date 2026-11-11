@@ -83,9 +83,16 @@ class FaithfulConverter:
                 if count > self.options.max_cells:
                     raise ValueError("Workbook exceeds max_cells; narrow the source data range")
                 rows, metadata = [], []
+                # Read the cached worksheet once. Random access on a read-only
+                # sheet reparses XML for every formula and becomes quadratic.
+                cached_rows = cached[sheet.title].iter_rows(
+                    min_row=1, max_row=sheet.max_row, min_col=1,
+                    max_col=sheet.max_column, values_only=True,
+                )
                 for row in sheet.iter_rows():
+                    cached_row = next(cached_rows, ())
                     values = []
-                    for cell in row:
+                    for column_index, cell in enumerate(row):
                         value = cell.value
                         display = "" if value is None else (value.isoformat() if isinstance(value, (date, datetime, time)) else str(value))
                         values.append(display)
@@ -98,7 +105,7 @@ class FaithfulConverter:
                             if cell.hyperlink:
                                 record["hyperlink"] = cell.hyperlink.target
                             if cell.data_type == "f":
-                                record["cached_value"] = cached[sheet.title][cell.coordinate].value
+                                record["cached_value"] = cached_row[column_index] if column_index < len(cached_row) else None
                                 if self.options.spreadsheet_view == "cached":
                                     cached_value = record["cached_value"]
                                     values[-1] = "[cache unavailable]" if cached_value is None else str(cached_value)

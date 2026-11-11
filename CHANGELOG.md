@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — Q5 reliability and evaluation complete (2026-11-11)
+
+- Run built-in batch conversions in disposable parser processes with active cancellation, a configurable 120-second per-file deadline, private scratch cleanup and independent failure outcomes.
+- Block Python socket networking in workers and avoid exposing parser exception contents in user-facing diagnostics.
+- Load parsers on demand so text conversion does not require Office/PDF dependencies.
+- Read Excel formula caches in one pass instead of repeatedly reparsing worksheet XML. The 5,000-formula fixture previously timed out at 120 seconds; the new three-run median is 0.503206 seconds on the recorded machine.
+- Add source-authored semantic goldens for ten extensions, four bounded stress cases and a benchmark runner that fails on broken gates.
+- Add 55 regression cases, including actual worker results, cancellation, crashes, missing dependencies, empty/malformed documents and GUI heartbeat checks. Full suite: 205 passed in 40.50s.
+- Record 42 passing evaluation runs with timing/memory methodology; update README and roadmap to user audit before Q6/F packaging. No new dependency or model is added.
+
 ## Unreleased — Q4 contextual media complete (2026-11-11)
 
 - Preserve Word/PPTX image occurrences beside their source text and captions; place Excel media by worksheet/drawing anchor and PDF visuals by page.

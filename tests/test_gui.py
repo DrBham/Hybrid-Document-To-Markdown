@@ -7,6 +7,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 import pytest
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Qt
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QPlainTextEdit
 
 from document_converter.core.models import (
@@ -232,3 +233,41 @@ def test_large_preview_copies_and_exports_complete_result(window, app, tmp_path)
     window.output_path.setText(str(tmp_path))
     window._export_successful()
     assert (tmp_path / "large.md").read_text() == text
+
+
+def test_gui_remains_responsive_and_cancels_active_parser(window, app, tmp_path, monkeypatch):
+    import sys
+    script = tmp_path / "slow_worker.py"
+    ready = tmp_path / "ready"
+    script.write_text("import pathlib, sys, time\npathlib.Path(sys.argv[1]).write_text('ready')\ntime.sleep(60)\n")
+    monkeypatch.setattr(window._batch_converter._process, "_command",
+                        lambda request: [sys.executable, str(script), str(ready)])
+    window.add_files(create_files(tmp_path, "slow.txt"))
+    ticks = []
+    timer = QTimer()
+    timer.setInterval(10)
+    timer.timeout.connect(lambda: ticks.append(1))
+    timer.start()
+    window._start_conversion()
+    try:
+        deadline = time.monotonic() + 10
+        while (not ready.exists() or len(ticks) < 3) and time.monotonic() < deadline:
+            app.processEvents()
+            time.sleep(.01)
+        assert ready.exists() and len(ticks) >= 3
+        assert window.cancel_button.isEnabled()
+        window.cancel_button.click()
+        deadline = time.monotonic() + 5
+        while window._thread is not None and time.monotonic() < deadline:
+            app.processEvents()
+            time.sleep(.01)
+        assert window._thread is None
+        assert window.export_button.isHidden()
+        assert window.convert_button.isEnabled()
+    finally:
+        timer.stop()
+        window._batch_converter.cancel()
+        deadline = time.monotonic() + 5
+        while window._thread is not None and time.monotonic() < deadline:
+            app.processEvents()
+            time.sleep(.01)

@@ -4,7 +4,9 @@ This report supplements the historical Q1 audit. Implemented behavior below is v
 
 Update 2026-11-11: Q3 acceptance is complete with **134 passing tests**. [Q3_ACCEPTANCE.md](Q3_ACCEPTANCE.md) supersedes the earlier Q3 pending items and documents policies/limits. The timing/memory table below remains a historical baseline of the previous implementation, not a benchmark of the new PDF/Office paths.
 
-Q4 update: **150 tests pass** after source-context placement, deduplication and portable asset export acceptance. [Q4_ACCEPTANCE.md](Q4_ACCEPTANCE.md) defines the completed scope and limitations. Q5 remains WIP.
+Q4 checkpoint: **150 tests passed** after source-context placement, deduplication and portable asset export acceptance. [Q4_ACCEPTANCE.md](Q4_ACCEPTANCE.md) defines its scope and limitations.
+
+Q5 closure (2026-11-11): **205 tests passed in 40.50s**. Ten-format semantic goldens and four bounded stress cases passed three fresh-process runs each. Active cancellation, per-file deadlines, worker cleanup and Python network guards are implemented. [Q5_ACCEPTANCE.md](Q5_ACCEPTANCE.md) supersedes the earlier pending Q5 items and links the measurements. User audit precedes Q6/F release work.
 
 ## Delivered checkpoints
 
@@ -14,7 +16,7 @@ Q4 update: **150 tests pass** after source-context placement, deduplication and 
 | Q3 | Exact decoded TXT, fenced JSON/XML, CSV dialect selection with original source, cell-based XLSX/formula/cache metadata and sheet selection, HTML pre blocks/local assets | Exact text, numeric strings, formula, merge metadata, namespaces/CDATA, multiline cells, image round-trip |
 | Q3 completed | Word semantic tables/lists/notes, PDF columns/geometric tables, PowerPoint connector/chart source records, literal XLSX numeric XML | Fifteen source-backed acceptance cases; see Q3 report |
 | Q4 | Base64 default; optional ZIP with relative assets and hash deduplication; OOXML relationship provenance; PDF pages/images/text modes | Byte comparisons, ZIP references/deduplication, three PDF modes |
-| Q5 | Cooperative cancellation between files; bounded preview with full copy/export; warnings in GUI; isolated ten-format corpus with time and process memory | Offscreen GUI, cancellation/restart, network-blocked HTML fixture, resource/failure tests, corpus runner |
+| Q5 | Disposable parser workers; active cancellation and deadlines; lazy parser imports; linear worksheet-cache reads; bounded preview and full copy/export | 205 tests; ten source-backed format cases and four stress cases; Python network guards; GUI heartbeat/cancel; crash, timeout and dependency failure recovery |
 
 New modules: `core/options.py`, `core/serialization.py`, `converters/faithful_converter.py`, `converters/local_html_converter.py`, `services/asset_package.py`. Existing router, result model, media extraction, exporter, batch service and GUI integrate these changes. Tests are in `tests/test_quality_hardening.py` and `tests/test_gui.py`.
 
@@ -49,7 +51,7 @@ Default limits: input 100 MiB, archive 10,000 entries / 256 MiB expanded, output
 
 Atomic Markdown publication writes and syncs a sibling temporary file, then replaces the destination for authorized overwrite or publishes an exclusive hard link. Filesystems without hard-link support fail safely instead of falling back to partial writes. Temporary files are cleaned on failure. No claim of power-loss durability for the directory entry is made.
 
-Cancellation finishes the current file and marks remaining files cancelled. It cannot interrupt an executing third-party parser. Preview shows at most 200,000 characters; Copy and Save retain the full result. Warnings are visible in file status/tooltips and preview summary.
+Default `BatchConverter()` and the GUI run one disposable parser process per file. Cancellation terminates the active child, cleans its scratch directory and marks remaining files cancelled; completed results remain available. The default 120-second deadline includes process startup/imports and is configurable through `BatchConverter(timeout_seconds=...)`. Injected custom routers retain cooperative cancellation between files. Direct `ConverterRouter.convert()` remains synchronous and has no process deadline or installed network guard. Preview shows at most 200,000 characters; Copy and Save retain the full result. Warnings are visible in file status/tooltips and preview summary.
 
 ## Before / after
 
@@ -71,6 +73,7 @@ Cancellation finishes the current file and marks remaining files cancelled. It c
 .\.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider
 .\.venv\Scripts\python.exe tools\audit_conversion_quality.py
 .\.venv\Scripts\python.exe tools\evaluate_quality.py
+.\.venv\Scripts\python.exe tools\evaluate_q5.py --repeat 3 --output docs/benchmarks/q5-windows.json
 git diff --check
 ```
 
@@ -97,8 +100,8 @@ Each corpus result records its actual checks, source/output size, timing, warnin
 
 - Q3 closed: tests now cover explicit PDF columns/merged tables, Word lists/footnotes/complex tables, PowerPoint chart/connector metadata, and XLSX numeric XML literals. The Q3 report records limits; arbitrary-layout perfection is not claimed.
 - Q4 closed: Word/PPTX source positions, Excel worksheet anchors and PDF page placement are tested alongside Base64/ZIP deduplication. Unknown positions use an appendix with warnings. PDF masks/vector artwork and inferred caption relationships remain limitations, as detailed in the Q4 report. No OCR or content interpretation is added.
-- Q5: large-document stress tests, a reviewed golden corpus of complex layouts, cancellation within a file, process timeouts and offline interception across every parser remain pending. Network blocking was tested on the local HTML path only. No fuzzing or complete security audit is claimed.
+- Q5 closed within the [documented corpus and reliability scope](Q5_ACCEPTANCE.md). Fixed semantic expectations cover all ten extensions, with Q3/Q4 complex cases retained. Four larger generated cases and 42 benchmark runs passed. Python socket calls are blocked in production workers; native-library networking, hard RAM caps, OS sandboxing, fuzzing and exhaustive real-world fidelity are not established by these tests.
 - Exported relative hyperlinks can require external companion documents. ZIP export repackages supported Base64 image references only; it does not crawl links or fetch network resources.
 - Profiles are deferred until these source fidelity contracts stabilize. No additional parser dependency was introduced.
 
-Next checkpoint: Q5 stress/corpus/quality gates before Q6 release work.
+Next checkpoint: user audit and reproducible corrections, then Q6/F clean installation and release packaging.

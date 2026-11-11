@@ -9,17 +9,25 @@ from ..core.models import (
     FileConversionOutcome,
 )
 from ..core.router import ConverterRouter
+from .process_converter import ProcessConverter
 
 
 class BatchConverter:
     """Convert files independently while preserving per-file outcomes."""
 
-    def __init__(self, router: ConverterRouter | None = None):
-        self._router = router if router is not None else ConverterRouter()
+    def __init__(self, router: ConverterRouter | None = None, *, options=None,
+                 timeout_seconds=120.0):
+        if router is not None and options is not None:
+            raise ValueError("Pass either a custom router or options, not both")
+        self._router = router
+        self._process = ProcessConverter(options, timeout_seconds=timeout_seconds) if router is None else None
         self._cancelled = Event()
 
     def cancel(self) -> None:
-        """Stop before the next file; never kill a parser thread mid-write."""
+        """Stop the active built-in parser process and cancel remaining files.
+
+        Injected custom routers retain cooperative cancellation between files.
+        """
         self._cancelled.set()
 
     def reset_cancellation(self) -> None:
@@ -48,7 +56,8 @@ class BatchConverter:
                 outcomes.append(FileConversionOutcome(source_path=path, error="Cancelled before conversion"))
                 continue
             try:
-                result = self._router.convert(path)
+                result = (self._process.convert(path, cancelled=self._cancelled)
+                          if self._process is not None else self._router.convert(path))
             except Exception as exc:
                 outcomes.append(
                     FileConversionOutcome(

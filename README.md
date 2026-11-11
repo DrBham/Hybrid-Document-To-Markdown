@@ -6,8 +6,8 @@
 
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
-[![Development Status](https://img.shields.io/badge/status-Quality%20Hardening%20WIP-D97706?style=for-the-badge)](#-roadmap)
-[![Tests](https://img.shields.io/badge/tests-150%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
+[![Development Status](https://img.shields.io/badge/status-User%20Audit%20WIP-D97706?style=for-the-badge)](#-roadmap)
+[![Tests](https://img.shields.io/badge/tests-205%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
 [![MarkItDown](https://img.shields.io/badge/MarkItDown-0.1.9-2563EB?style=flat-square)](https://github.com/microsoft/markitdown)
@@ -30,7 +30,7 @@
 ---
 
 > [!IMPORTANT]
-> **Q4 contextual media is complete for its documented policies: 150 tests pass.** Images follow source document/slide/worksheet/page context, with optional portable asset ZIP export. See [Q4 acceptance and limits](docs/Q4_ACCEPTANCE.md), [Q3 format acceptance](docs/Q3_ACCEPTANCE.md), and [changelog](CHANGELOG.md). Q5 broader evaluation is WIP. Single-file Base64 remains the default.
+> **Q5 testing and reliability is complete for its documented scope: 205 tests pass.** Conversion can be cancelled during a file, each built-in batch file has a timeout, and a ten-format corpus plus four stress cases pass. See [Q5 evidence and audit guide](docs/Q5_ACCEPTANCE.md), [Q4 media policies](docs/Q4_ACCEPTANCE.md), and [changelog](CHANGELOG.md). User audit is next; single-file Base64 remains the default.
 
 > [!NOTE]
 > This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
@@ -118,7 +118,7 @@
 <li>Single-file Markdown output with Base64-embedded images</li>
 <li>No OCR runtime, model pack, dataset, or training requirement</li>
 <li>Real DOCX image-to-Base64 integration coverage</li>
-<li>150 passing automated tests, including format fidelity and contextual media acceptance</li>
+<li>205 passing automated tests, including format fidelity, contextual media and process reliability</li>
 </ul>
 </td>
 <td width="50%" valign="top">
@@ -128,7 +128,8 @@
 <li><strong>Implemented — Quality Q2:</strong> options, warnings, atomic export and resource safeguards</li>
 <li><strong>Completed — Quality Q3:</strong> format fidelity policies and acceptance fixtures</li>
 <li><strong>Completed — Quality Q4:</strong> contextual media, deduplication and portable asset export</li>
-<li><strong>WIP — Quality Q5:</strong> broader corpus, stress and performance evaluation</li>
+<li><strong>Completed — Quality Q5:</strong> source-backed corpus, stress evaluation, cancellation and timeouts</li>
+<li><strong>WIP — User audit:</strong> review all workflows and record corrections before release preparation</li>
 <li><strong>Planned — Phase F:</strong> Windows packaging after quality hardening</li>
 <li><strong>Planned:</strong> compatibility testing with major multimodal AI clients</li>
 </ul>
@@ -199,7 +200,7 @@ The conversion path is local. TXT/JSON/XML/CSV/XLSX use dedicated fidelity paths
 <p>No API key is required for local conversion.</p>
 <h3 id="run-the-tests">🧪 Test</h3>
 <pre><code>python -m pytest -q</code></pre>
-<p>Last verified: <code>150 passed</code> (2026-11-11)</p>
+<p>Last verified: <code>205 passed</code> (2026-11-11)</p>
 </td>
 <td width="62%" valign="top">
 <h3 id="installation">📦 Installation</h3>
@@ -230,7 +231,7 @@ $env:PYTHONPATH = "src"
 python -m document_converter
 ```
 
-The file-type selector starts at TXT. Choose another format when needed, then browse or drag matching documents, convert them, review a result, and choose an output folder. “Save Markdown” appears after at least one conversion succeeds. Conversion runs in a worker thread, so the window remains responsive.
+The file-type selector starts at TXT. Choose another format when needed, then browse or drag matching documents, convert them, review a result, and choose an output folder. “Save Markdown” appears after at least one conversion succeeds. A worker thread supervises a separate parser process, so the window remains responsive. “Cancel conversion” stops the active file and skips remaining files while keeping completed results. Each file has a 120-second deadline, including process startup; advanced callers can configure it through `BatchConverter(timeout_seconds=...)`.
 
 ### 🖼️ Single-File Image Embedding
 
@@ -359,7 +360,7 @@ python .\your_script.py
 | Services | Coordinate batches and export | `BatchConverter`, `MarkdownExporter` |
 | Image extraction | Extract OOXML media and render PDF pages locally | `DocumentImageExtractor` |
 | Media embedding | Resolve source positions, share Base64 payloads, and preserve unplaced media with warnings | `EmbeddedMediaDocumentConverter` |
-| GUI | Desktop interaction | PySide6 window, worker thread, preview, and export workflow |
+| GUI | Desktop interaction | PySide6 window, worker thread supervising disposable parser processes, preview, and export workflow |
 
 ### Why an adapter?
 
@@ -426,11 +427,11 @@ This design provides:
 
 The test suite focuses on application behavior and third-party integration boundaries. It does not pretend to test MarkItDown's internal algorithms as original project code.
 
-Q1 baseline: **80 → 92 passed**. Current suite: **150 passed**, including fifteen Q3 format cases and sixteen Q4 media cases. Tests cover source placement/captions, sheet isolation, byte preservation, deduplication, package references and failure handling. Passing these fixtures does not establish fidelity for every possible layout. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md) and [Q4 acceptance](docs/Q4_ACCEPTANCE.md).
+Q1 baseline: **80 → 92 passed**. Current suite: **205 passed**, including fifteen Q3 format cases, sixteen Q4 media cases and 55 added Q5 cases. Q5 covers source comparisons for all ten extensions, four stress cases, active cancellation, timeouts, parser crashes, missing dependencies, offline guards and GUI responsiveness. Passing these fixtures does not establish fidelity for every possible layout. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md), [Q4 acceptance](docs/Q4_ACCEPTANCE.md) and [Q5 evidence](docs/Q5_ACCEPTANCE.md).
 
 Run reproducible synthetic probes with `python tools/audit_conversion_quality.py`. The script prints source/output comparisons and removes its temporary fixtures; it is not an accuracy benchmark. See the [audit](docs/CONVERSION_QUALITY_AUDIT.md) for observed losses and the measurement plan.
 
-Run `python tools/evaluate_quality.py` for isolated ten-format checks, conversion time and process peak memory. The [implementation report](docs/QUALITY_IMPLEMENTATION.md) records measured results and pending acceptance work.
+Run `python tools/evaluate_q5.py --repeat 3 --output docs/benchmarks/q5-windows.json` for the current semantic corpus, stress gates, timing and process peak memory. Failed gates return a nonzero exit code. [Recorded measurements](docs/benchmarks/q5-windows.json) contain 42 successful runs; [Q5 methodology](docs/Q5_ACCEPTANCE.md) explains exactly what is measured. The older `evaluate_quality.py` remains a small smoke baseline.
 
 <table>
 <tr>
@@ -501,7 +502,8 @@ python -m pytest -q
 <li>PDF text defaults to one column; select <code>pdf_columns=2</code> through the API for equal-width two-column pages. Irregular layouts require review.</li>
 <li>Complex tables and footnotes can use semantic HTML; viewer support varies. Diagram metadata preserves source connections, not inferred meaning.</li>
 <li>Resource budgets reject oversized conversions but do not impose a hard process RAM/time limit.</li>
-<li>Cancel remaining finishes the current file. Preview is limited to 200,000 characters; Copy and Save retain all content.</li>
+<li>Default batch/GUI conversion supports active cancellation and a 120-second per-file timeout. Custom injected routers remain cooperative between files. Preview is limited to 200,000 characters; Copy and Save retain all content.</li>
+<li>Worker processes deny Python socket networking. This is not an OS security sandbox or a hard RAM cap. Direct core API calls do not install this guard.</li>
 <li>Encrypted or damaged files may fail.</li>
 <li>The 100 MiB limit is not yet configurable in the GUI.</li>
 </ul>
@@ -547,8 +549,9 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 | Quality Q2 | Options/warnings, atomic export, resource safeguards, shared fence/table serializers | Implemented and tested |
 | Quality Q3 | Format fidelity policies and source-backed acceptance; [scope and limits](docs/Q3_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q4 | Source-context media, deduplication, PDF visual modes and portable ZIP; [scope and limits](docs/Q4_ACCEPTANCE.md) | ✅ Completed |
-| Quality Q5 | 150 tests, ten-format baseline, cancellation/preview implemented; broader stress/golden corpus remains | 🚧 WIP |
-| Quality Q6 / F — Release | Documentation, clean-install checks, Windows packaging, license inventory, compatibility and release validation | Planned after quality gates |
+| Quality Q5 | 205 tests, ten-format semantic corpus, four stress cases, active cancellation, process deadlines and offline checks; [evidence](docs/Q5_ACCEPTANCE.md) | ✅ Completed |
+| User audit | Review conversion/export/GUI functions and address documented findings | 🚧 WIP |
+| Quality Q6 / F — Release | Clean-install checks, Windows packaging, license inventory, compatibility and release validation | Planned after user audit |
 
 ### Phase E result
 
@@ -560,12 +563,12 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 - PaddleOCR, model packs, datasets, training scripts, and ML dependencies were removed.
 - Real DOCX image embedding and local PDF rendering are covered by tests.
 
-### Current: Quality Q5 acceptance
+### Current: user audit before Q6/F
 
-1. Retain the completed Q3/Q4 acceptance cases as format and media regressions.
-2. Evaluate cancellation within a file and processing timeouts.
-3. Expand stress, golden-corpus and offline validation beyond the current synthetic baseline.
-4. Complete quality gates before packaging in Q6/F.
+1. Review the [Q5 audit guide and known limits](docs/Q5_ACCEPTANCE.md#user-audit).
+2. Compare representative personal documents with Markdown and exported assets.
+3. Record reproducible discrepancies, fix them, and retain regression cases.
+4. Proceed to clean-install and installer validation in Q6/F after the audit.
 
 The [implementation report](docs/QUALITY_IMPLEMENTATION.md) distinguishes delivered checkpoints from pending acceptance work. The [original audit](docs/CONVERSION_QUALITY_AUDIT.md) remains the historical baseline. Base64 remains available; advanced modes do not silently change the GUI default.
 
