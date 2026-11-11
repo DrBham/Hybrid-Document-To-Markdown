@@ -22,6 +22,7 @@ SUPPORTED_IMAGE_FORMATS = frozenset(
 class ExtractedImage:
     path: Path
     context: str
+    page: int | None = None
 
 
 class DocumentImageExtractor:
@@ -158,7 +159,7 @@ class DocumentImageExtractor:
                                 total_bytes += image_path.stat().st_size
                                 if total_bytes > self.options.max_uncompressed_bytes:
                                     raise ValueError("PDF images exceed media budget")
-                                extracted.append(ExtractedImage(image_path, f"PDF page {page_index + 1}, image {index}"))
+                                extracted.append(ExtractedImage(image_path, f"PDF page {page_index + 1}, image {index}", page_index + 1))
                         continue
                     import math
                     width, height = page.get_size()
@@ -173,7 +174,7 @@ class DocumentImageExtractor:
                     total_bytes += target.stat().st_size
                     if total_bytes > self.options.max_uncompressed_bytes:
                         raise ValueError("Rendered PDF exceeds media budget")
-                    extracted.append(ExtractedImage(target, f"Rendered PDF page {page_index + 1}"))
+                    extracted.append(ExtractedImage(target, f"Rendered PDF page {page_index + 1}", page_index + 1))
                 finally:
                     if bitmap is not None:
                         bitmap.close()

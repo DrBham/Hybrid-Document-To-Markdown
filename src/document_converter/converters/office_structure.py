@@ -7,6 +7,52 @@ from zipfile import ZipFile
 from ..core.serialization import fenced
 
 
+def worksheet_images(source, selected=()):
+    """Resolve drawing anchors to original media bytes without Pillow re-encoding."""
+    from openpyxl.utils import get_column_letter
+    main = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+    rel = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+    drawing = "{http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing}"
+    art = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
+    with ZipFile(source) as archive:
+        def targets(owner):
+            directory, name = posixpath.split(owner)
+            rel_path = posixpath.join(directory, "_rels", name + ".rels")
+            if rel_path not in archive.namelist():
+                return {}
+            return {entry.get("Id"): (entry.get("Target").lstrip("/") if entry.get("Target").startswith("/") else posixpath.normpath(posixpath.join(directory, entry.get("Target"))))
+                    for entry in parse_xml(archive.read(rel_path)) if entry.get("TargetMode") != "External"}
+        workbook = parse_xml(archive.read("xl/workbook.xml"))
+        sheet_targets = targets("xl/workbook.xml")
+        result = {}
+        for sheet in workbook.findall(f"{main}sheets/{main}sheet"):
+            title = sheet.get("name")
+            if selected and title not in selected:
+                continue
+            entries = result.setdefault(title, [])
+            part = sheet_targets[sheet.get(rel + "id")]
+            sheet_xml = parse_xml(archive.read(part))
+            drawing_targets = targets(part)
+            for reference in sheet_xml.findall(main + "drawing"):
+                drawing_part = drawing_targets.get(reference.get(rel + "id"))
+                if drawing_part is None:
+                    continue
+                image_targets = targets(drawing_part)
+                for anchor in parse_xml(archive.read(drawing_part)):
+                    start = anchor.find(drawing + "from")
+                    location = "absolute drawing anchor"
+                    if start is not None:
+                        location = get_column_letter(int(start.findtext(drawing + "col")) + 1) + str(int(start.findtext(drawing + "row")) + 1)
+                    for picture in anchor.iter(drawing + "pic"):
+                        description = picture.find(".//" + drawing + "cNvPr")
+                        alt = description.get("descr") if description is not None else None
+                        for blip in picture.iter(art + "blip"):
+                            media_part = image_targets.get(blip.get(rel + "embed"))
+                            if media_part is not None:
+                                entries.append((media_part, location, alt, archive.read(media_part)))
+        return result
+
+
 def parse_xml(data):
     probe = data.replace(b"\x00", b"").upper()
     if b"<!DOCTYPE" in probe or b"<!ENTITY" in probe:

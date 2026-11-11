@@ -86,6 +86,7 @@ def test_converter_embeds_image_inside_single_markdown_result(tmp_path):
     assert "Embedded image: diagram.png" in result.markdown
     assert "data:image/png;base64," in result.markdown
     assert base64.b64encode(b"fixture").decode("ascii") in result.markdown
+    assert any("no verified inline position" in warning for warning in result.warnings)
 
 
 def test_converter_leaves_text_only_markdown_without_media_section(tmp_path):

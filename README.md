@@ -7,7 +7,7 @@
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
 [![Development Status](https://img.shields.io/badge/status-Quality%20Hardening%20WIP-D97706?style=for-the-badge)](#-roadmap)
-[![Tests](https://img.shields.io/badge/tests-134%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
+[![Tests](https://img.shields.io/badge/tests-150%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
 [![MarkItDown](https://img.shields.io/badge/MarkItDown-0.1.9-2563EB?style=flat-square)](https://github.com/microsoft/markitdown)
@@ -30,7 +30,7 @@
 ---
 
 > [!IMPORTANT]
-> **Q3 is complete for the documented format policies and acceptance fixtures: 134 tests pass.** See [Q3 acceptance and limits](docs/Q3_ACCEPTANCE.md), the [implementation report](docs/QUALITY_IMPLEMENTATION.md), and [changelog](CHANGELOG.md). Q4 contextual assets and Q5 broader evaluation remain WIP. Base64 remains the default.
+> **Q4 contextual media is complete for its documented policies: 150 tests pass.** Images follow source document/slide/worksheet/page context, with optional portable asset ZIP export. See [Q4 acceptance and limits](docs/Q4_ACCEPTANCE.md), [Q3 format acceptance](docs/Q3_ACCEPTANCE.md), and [changelog](CHANGELOG.md). Q5 broader evaluation is WIP. Single-file Base64 remains the default.
 
 > [!NOTE]
 > This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
@@ -118,7 +118,7 @@
 <li>Single-file Markdown output with Base64-embedded images</li>
 <li>No OCR runtime, model pack, dataset, or training requirement</li>
 <li>Real DOCX image-to-Base64 integration coverage</li>
-<li>134 passing automated tests, including Q3 source-backed complex-format acceptance</li>
+<li>150 passing automated tests, including format fidelity and contextual media acceptance</li>
 </ul>
 </td>
 <td width="50%" valign="top">
@@ -127,7 +127,8 @@
 <li><strong>Completed — Phase E:</strong> preserve images inside one Markdown file</li>
 <li><strong>Implemented — Quality Q2:</strong> options, warnings, atomic export and resource safeguards</li>
 <li><strong>Completed — Quality Q3:</strong> format fidelity policies and acceptance fixtures</li>
-<li><strong>WIP — Quality Q4–Q5:</strong> contextual assets and broader evaluation</li>
+<li><strong>Completed — Quality Q4:</strong> contextual media, deduplication and portable asset export</li>
+<li><strong>WIP — Quality Q5:</strong> broader corpus, stress and performance evaluation</li>
 <li><strong>Planned — Phase F:</strong> Windows packaging after quality hardening</li>
 <li><strong>Planned:</strong> compatibility testing with major multimodal AI clients</li>
 </ul>
@@ -198,7 +199,7 @@ The conversion path is local. TXT/JSON/XML/CSV/XLSX use dedicated fidelity paths
 <p>No API key is required for local conversion.</p>
 <h3 id="run-the-tests">🧪 Test</h3>
 <pre><code>python -m pytest -q</code></pre>
-<p>Last verified: <code>134 passed</code> (2026-11-11)</p>
+<p>Last verified: <code>150 passed</code> (2026-11-11)</p>
 </td>
 <td width="62%" valign="top">
 <h3 id="installation">📦 Installation</h3>
@@ -241,7 +242,9 @@ The generated Markdown contains entries such as:
 ![Embedded image: diagram.png](data:image/png;base64,iVBORw0KGgo...)
 ```
 
-The characters after `base64,` encode the extracted image bytes. Supported OOXML media are copied without recompression; PDF images in this workflow are newly rendered page PNGs, not the original embedded image bytes. Decoding or displaying these payloads depends on the receiving client; uploading a `.md` file does not guarantee that an AI chat will inspect its images.
+The characters after `base64,` encode the extracted image bytes. Supported OOXML media use original source bytes. PDF defaults to rendered page PNGs; `pdf_mode="images"` can preserve native JPEG streams but may re-encode other formats. Word/PPTX images retain source positions, Excel images identify worksheet anchors, and PDF visuals remain with their page. Repeated Markdown images share a Base64 reference definition. See [Q4 options and ZIP export](docs/Q4_ACCEPTANCE.md#configuration-and-export).
+
+Decoding or displaying these payloads depends on the receiving client; uploading a `.md` file does not guarantee that an AI chat will inspect its images.
 
 > [!IMPORTANT]
 > Base64 is encoding, not encryption or OCR. It preserves the original visual but does not describe its meaning. Uploading the Markdown to a third-party AI also subjects its contents to that provider's privacy policy.
@@ -355,7 +358,7 @@ python .\your_script.py
 | Conversion adapter | Isolate the third-party engine | `MarkItDownConverter` |
 | Services | Coordinate batches and export | `BatchConverter`, `MarkdownExporter` |
 | Image extraction | Extract OOXML media and render PDF pages locally | `DocumentImageExtractor` |
-| Media embedding | Encode images as Base64 data URIs and append them to Markdown | `EmbeddedMediaDocumentConverter` |
+| Media embedding | Resolve source positions, share Base64 payloads, and preserve unplaced media with warnings | `EmbeddedMediaDocumentConverter` |
 | GUI | Desktop interaction | PySide6 window, worker thread, preview, and export workflow |
 
 ### Why an adapter?
@@ -423,7 +426,7 @@ This design provides:
 
 The test suite focuses on application behavior and third-party integration boundaries. It does not pretend to test MarkItDown's internal algorithms as original project code.
 
-Q1 baseline: **80 → 92 passed**. Current suite: **134 passed**, including fifteen Q3 acceptance cases for PDF columns/merged tables, Word nested lists/tables/footnotes, chart/connector metadata, exact XLSX numeric literals, and nested HTML code. Passing these fixtures does not establish fidelity for every possible layout. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md).
+Q1 baseline: **80 → 92 passed**. Current suite: **150 passed**, including fifteen Q3 format cases and sixteen Q4 media cases. Tests cover source placement/captions, sheet isolation, byte preservation, deduplication, package references and failure handling. Passing these fixtures does not establish fidelity for every possible layout. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md) and [Q4 acceptance](docs/Q4_ACCEPTANCE.md).
 
 Run reproducible synthetic probes with `python tools/audit_conversion_quality.py`. The script prints source/output comparisons and removes its temporary fixtures; it is not an accuracy benchmark. See the [audit](docs/CONVERSION_QUALITY_AUDIT.md) for observed losses and the measurement plan.
 
@@ -492,7 +495,8 @@ python -m pytest -q
 <li>XLSX preserves string identifiers and formulas; numeric values already rounded in Excel cannot be recovered. Formula caches can be absent or stale.</li>
 <li>TXT uses strict explicit decoding. Select another encoding through the API when required.</li>
 <li>CSV includes its original source; ambiguous delimiters require an explicit choice.</li>
-<li>OOXML images carry owner-part provenance in an appendix; full inline caption placement remains pending.</li>
+<li>Word/PPTX preserve source image/caption order. Excel uses worksheet/cell anchors; PDF uses page context. Exact inferred caption matching is not provided.</li>
+<li>Media without verified positions falls back to an appendix with warnings. Semantic HTML images may repeat Base64 in standalone Markdown; ZIP export deduplicates them.</li>
 <li>PDF defaults to page images. Optional image extraction may omit masks/vector artwork; text mode omits visuals.</li>
 <li>PDF text defaults to one column; select <code>pdf_columns=2</code> through the API for equal-width two-column pages. Irregular layouts require review.</li>
 <li>Complex tables and footnotes can use semantic HTML; viewer support varies. Diagram metadata preserves source connections, not inferred meaning.</li>
@@ -542,8 +546,8 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 | Quality Q1 | Architecture audit, synthetic fidelity probes, first whitespace regression fix | ✅ Completed |
 | Quality Q2 | Options/warnings, atomic export, resource safeguards, shared fence/table serializers | Implemented and tested |
 | Quality Q3 | Format fidelity policies and source-backed acceptance; [scope and limits](docs/Q3_ACCEPTANCE.md) | ✅ Completed |
-| Quality Q4 | Asset ZIP, provenance and PDF modes implemented; inline caption placement remains | 🚧 WIP |
-| Quality Q5 | 134 tests, ten-format baseline, cancellation/preview implemented; broader stress/golden corpus remains | 🚧 WIP |
+| Quality Q4 | Source-context media, deduplication, PDF visual modes and portable ZIP; [scope and limits](docs/Q4_ACCEPTANCE.md) | ✅ Completed |
+| Quality Q5 | 150 tests, ten-format baseline, cancellation/preview implemented; broader stress/golden corpus remains | 🚧 WIP |
 | Quality Q6 / F — Release | Documentation, clean-install checks, Windows packaging, license inventory, compatibility and release validation | Planned after quality gates |
 
 ### Phase E result
@@ -556,10 +560,10 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 - PaddleOCR, model packs, datasets, training scripts, and ML dependencies were removed.
 - Real DOCX image embedding and local PDF rendering are covered by tests.
 
-### Current: Quality Q4–Q5 acceptance
+### Current: Quality Q5 acceptance
 
-1. Retain the completed Q3 acceptance cases as format regressions.
-2. Improve inline asset/caption placement from source relationships.
+1. Retain the completed Q3/Q4 acceptance cases as format and media regressions.
+2. Evaluate cancellation within a file and processing timeouts.
 3. Expand stress, golden-corpus and offline validation beyond the current synthetic baseline.
 4. Complete quality gates before packaging in Q6/F.
 

@@ -9,6 +9,7 @@ class ConversionOptions:
     csv_delimiter: str | None = None
     pdf_mode: str = "pages"
     pdf_columns: int = 1
+    media_placement: str = "context"
     spreadsheet_view: str = "formula"
     sheets: tuple[str, ...] = ()
     max_archive_entries: int = 10000
@@ -19,6 +20,8 @@ class ConversionOptions:
     max_cells: int = 250_000
 
     def __post_init__(self):
+        if self.media_placement not in {"context", "appendix"}:
+            raise ValueError("media_placement must be context or appendix")
         if self.text_mode not in {"preserve", "prose"}:
             raise ValueError("text_mode must be preserve or prose")
         if self.pdf_mode not in {"pages", "images", "text"}:

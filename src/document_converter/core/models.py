@@ -3,6 +3,21 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+@dataclass(frozen=True)
+class InlineImage:
+    token: str
+    data: bytes
+    mime_type: str
+    label: str
+    html: bool = False
+
+
+@dataclass(frozen=True)
+class PageMediaSlot:
+    token: str
+    page: int
+
+
 @dataclass
 class ConversionResult:
     """Represent the result of a document conversion."""
@@ -11,6 +26,8 @@ class ConversionResult:
     source_format: str
     markdown: str
     warnings: tuple[str, ...] = ()
+    inline_images: tuple[InlineImage, ...] = ()
+    page_media_slots: tuple[PageMediaSlot, ...] = ()
 
 
 @dataclass(frozen=True)

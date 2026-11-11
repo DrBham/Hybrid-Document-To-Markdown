@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — Q4 contextual media complete (2026-11-11)
+
+- Preserve Word/PPTX image occurrences beside their source text and captions; place Excel media by worksheet/drawing anchor and PDF visuals by page.
+- Read Excel images from original archive bytes and exclude unselected worksheets' assets.
+- Deduplicate repeated Markdown payloads with reference definitions; retain optional appendix placement and explicit fallback warnings.
+- Extend portable ZIP export to image reference definitions and HTML image sources while preserving code examples.
+- Verify PDF native JPEG byte preservation, package overwrite failure behavior and malformed Base64 rejection.
+- Add sixteen Q4 acceptance cases; full suite: 150 passed. Update README and Q4 acceptance report; Q5 remains WIP.
+
 ## Unreleased — Q3 format acceptance complete (2026-11-11)
 
 - Add page-aware PDF text, explicit two-column reading, merged-table HTML and source geometry; respect nonzero page origins.

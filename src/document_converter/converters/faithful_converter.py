@@ -60,8 +60,12 @@ class FaithfulConverter:
 
     def _xlsx(self, source):
         from openpyxl import load_workbook
-        from .office_structure import worksheet_values
+        from .office_structure import worksheet_values, worksheet_images
         raw_values = worksheet_values(source)
+        source_images = worksheet_images(source, self.options.sheets)
+        from ..embedded_media.placement import ImageCollector
+        from ..embedded_media.converter import MIME_TYPES
+        images = ImageCollector()
         formulas = load_workbook(source, data_only=False, read_only=False)
         cached = None
         warnings = []
@@ -102,6 +106,9 @@ class FaithfulConverter:
                             metadata.append(record)
                     rows.append(values)
                 sections.append("## " + sheet.title.replace("\n", " ") + "\n\n" + table(rows))
+                for part, location, alt, data in source_images.get(sheet.title, []):
+                    mime = MIME_TYPES.get(Path(part).suffix.lower(), "application/octet-stream")
+                    sections.append(f"Image anchored at {location}:\n\n" + images.add(data, mime, f"{sheet.title} — {location}" + (f": {alt}" if alt else "")))
                 sections.append("### Cell metadata\n\n" + fenced(json.dumps({
                     "sheet": sheet.title, "merged_ranges": [str(r) for r in sheet.merged_cells.ranges],
                     "cells": metadata,
@@ -110,4 +117,4 @@ class FaithfulConverter:
             formulas.close()
             if cached is not None:
                 cached.close()
-        return ConversionResult(source, "xlsx", "\n".join(sections), tuple(dict.fromkeys(warnings)))
+        return ConversionResult(source, "xlsx", "\n".join(sections), tuple(dict.fromkeys(warnings)), inline_images=tuple(images.images))

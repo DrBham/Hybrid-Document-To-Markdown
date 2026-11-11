@@ -1,10 +1,11 @@
 """Page-aware PDF text and geometric tables, without speculative cleanup."""
 import html
 import json
+from uuid import uuid4
 
 import pdfplumber
 
-from ..core.models import ConversionResult
+from ..core.models import ConversionResult, PageMediaSlot
 from ..core.serialization import fenced
 
 
@@ -14,6 +15,7 @@ class LayoutPdfConverter:
 
     def convert(self, source):
         sections, warnings = [], []
+        media_slots = []
         has_text = False
         with pdfplumber.open(source) as document:
             for number, page in enumerate(document.pages, 1):
@@ -69,8 +71,12 @@ class LayoutPdfConverter:
                     has_text = has_text or bool(lines) or any(any(value for value in row if value) for table in tables for row in table.extract())
                     column_text.append("\n\n".join(item[2] for item in ordered))
                 sections.append(f"## Page {number}\n\n" + "\n\n".join(column_text))
+                if self.options.pdf_mode != "text":
+                    token = "HYBRIDPAGE" + uuid4().hex.upper()
+                    media_slots.append(PageMediaSlot(token, number))
+                    sections.append(token)
                 page.close()
         if not has_text:
             warnings.append("No PDF text layer was extracted. Images are not OCR text.")
         warnings.append("PDF text follows page geometry. Choose pdf_columns=2 only for equal-width two-column pages; irregular layouts require source review.")
-        return ConversionResult(source, "pdf", "\n\n".join(sections), tuple(warnings))
+        return ConversionResult(source, "pdf", "\n\n".join(sections), tuple(warnings), page_media_slots=tuple(media_slots))

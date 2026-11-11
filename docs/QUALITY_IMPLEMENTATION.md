@@ -4,6 +4,8 @@ This report supplements the historical Q1 audit. Implemented behavior below is v
 
 Update 2026-11-11: Q3 acceptance is complete with **134 passing tests**. [Q3_ACCEPTANCE.md](Q3_ACCEPTANCE.md) supersedes the earlier Q3 pending items and documents policies/limits. The timing/memory table below remains a historical baseline of the previous implementation, not a benchmark of the new PDF/Office paths.
 
+Q4 update: **150 tests pass** after source-context placement, deduplication and portable asset export acceptance. [Q4_ACCEPTANCE.md](Q4_ACCEPTANCE.md) defines the completed scope and limitations. Q5 remains WIP.
+
 ## Delivered checkpoints
 
 | Area | Delivered | Validation |
@@ -30,6 +32,7 @@ options = ConversionOptions(
     csv_delimiter=None,          # Infer comma/semicolon/tab/pipe; specify when ambiguous.
     pdf_mode="pages",            # pages (default), images, or text
     pdf_columns=1,               # 2 for equal-width two-column pages; explicit, not inferred.
+    media_placement="context",  # Default source placement; "appendix" is also available.
     spreadsheet_view="formula", # formula or cached; metadata retains formula either way
     sheets=(),                  # All sheets, or a tuple of worksheet names
 )
@@ -93,9 +96,9 @@ Each corpus result records its actual checks, source/output size, timing, warnin
 ## Remaining acceptance work
 
 - Q3 closed: tests now cover explicit PDF columns/merged tables, Word lists/footnotes/complex tables, PowerPoint chart/connector metadata, and XLSX numeric XML literals. The Q3 report records limits; arbitrary-layout perfection is not claimed.
-- Q4: OOXML images carry owner-part provenance in an appendix, not full inline caption placement. PDF extraction preserves native JPEG/JPX where supported by PDFium but other encodings may be re-encoded; masks/vector artwork may be absent. Unsupported extracted encodings fail with guidance to use pages mode. Text mode intentionally has no visual assets. No OCR or content interpretation is added.
+- Q4 closed: Word/PPTX source positions, Excel worksheet anchors and PDF page placement are tested alongside Base64/ZIP deduplication. Unknown positions use an appendix with warnings. PDF masks/vector artwork and inferred caption relationships remain limitations, as detailed in the Q4 report. No OCR or content interpretation is added.
 - Q5: large-document stress tests, a reviewed golden corpus of complex layouts, cancellation within a file, process timeouts and offline interception across every parser remain pending. Network blocking was tested on the local HTML path only. No fuzzing or complete security audit is claimed.
 - Exported relative hyperlinks can require external companion documents. ZIP export repackages supported Base64 image references only; it does not crawl links or fetch network resources.
 - Profiles are deferred until these source fidelity contracts stabilize. No additional parser dependency was introduced.
 
-Next checkpoint: Q4 contextual placement and Q5 stress/quality gates before Q6 release work.
+Next checkpoint: Q5 stress/corpus/quality gates before Q6 release work.
