@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — Q3 format acceptance complete (2026-11-11)
+
+- Add page-aware PDF text, explicit two-column reading, merged-table HTML and source geometry; respect nonzero page origins.
+- Preserve Word merged/nested tables, nested numbering, and two-way footnote anchors; expose parser warnings.
+- Preserve PowerPoint connector IDs and chart/diagram source data alongside readable output.
+- Retain XLSX numeric XML literals before float coercion and use them in numeric table cells.
+- Preserve complex HTML table spans and nested code; add explicit TXT prose mode with a warning.
+- Add fifteen source-backed acceptance cases. Full suite: 134 passed.
+- Update README and Q3 acceptance report. Q4 and Q5 remain WIP.
+
 ## Unreleased — Q2–Q5 implementation checkpoints
 
 - Add conversion policies, result warnings, resource budgets and atomic Markdown export.

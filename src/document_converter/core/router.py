@@ -23,6 +23,8 @@ class ConverterRouter:
 
             from ..converters.faithful_converter import FaithfulConverter
             from ..converters.local_html_converter import LocalHtmlConverter
+            from ..converters.semantic_office import SemanticOfficeConverter
+            from ..converters.layout_pdf import LayoutPdfConverter
             engine = EmbeddedMediaDocumentConverter(MarkItDownConverter(), options=self.options)
             converters = {
                 extension: engine
@@ -32,6 +34,9 @@ class ConverterRouter:
                 converters[extension] = EmbeddedMediaDocumentConverter(FaithfulConverter(self.options), options=self.options)
             for extension in (".html", ".htm"):
                 converters[extension] = LocalHtmlConverter(self.options)
+            for extension in (".docx", ".pptx"):
+                converters[extension] = EmbeddedMediaDocumentConverter(SemanticOfficeConverter(), options=self.options)
+            converters[".pdf"] = EmbeddedMediaDocumentConverter(LayoutPdfConverter(self.options), options=self.options)
 
         self.converters = converters
 

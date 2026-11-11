@@ -7,7 +7,7 @@
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
 [![Development Status](https://img.shields.io/badge/status-Quality%20Hardening%20WIP-D97706?style=for-the-badge)](#-roadmap)
-[![Tests](https://img.shields.io/badge/tests-119%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
+[![Tests](https://img.shields.io/badge/tests-134%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
 [![MarkItDown](https://img.shields.io/badge/MarkItDown-0.1.9-2563EB?style=flat-square)](https://github.com/microsoft/markitdown)
@@ -30,7 +30,7 @@
 ---
 
 > [!IMPORTANT]
-> Quality hardening now includes atomic export, bounded conversion policies, faithful text/structured-data paths, media options, and batch cancellation. **119 tests pass**. Complex-layout acceptance work remains in progress; see the [implementation report](docs/QUALITY_IMPLEMENTATION.md), [historical audit](docs/CONVERSION_QUALITY_AUDIT.md), and [changelog](CHANGELOG.md). Base64 remains the default.
+> **Q3 is complete for the documented format policies and acceptance fixtures: 134 tests pass.** See [Q3 acceptance and limits](docs/Q3_ACCEPTANCE.md), the [implementation report](docs/QUALITY_IMPLEMENTATION.md), and [changelog](CHANGELOG.md). Q4 contextual assets and Q5 broader evaluation remain WIP. Base64 remains the default.
 
 > [!NOTE]
 > This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
@@ -89,7 +89,7 @@
 </table>
 
 > [!NOTE]
-> Earlier heuristic TXT-converter code remains as a learning milestone. Production uses dedicated fidelity paths alongside MarkItDown for Office/PDF documents.
+> Earlier heuristic TXT-converter code remains as a learning milestone. Production combines dedicated fidelity paths, Mammoth for Word, pdfplumber for PDF layout, and MarkItDown for PowerPoint text/chart conversion.
 
 <a id="-feature-status"></a>
 
@@ -118,7 +118,7 @@
 <li>Single-file Markdown output with Base64-embedded images</li>
 <li>No OCR runtime, model pack, dataset, or training requirement</li>
 <li>Real DOCX image-to-Base64 integration coverage</li>
-<li>119 passing automated tests; complex-format fidelity is still being improved</li>
+<li>134 passing automated tests, including Q3 source-backed complex-format acceptance</li>
 </ul>
 </td>
 <td width="50%" valign="top">
@@ -126,7 +126,8 @@
 <ul>
 <li><strong>Completed — Phase E:</strong> preserve images inside one Markdown file</li>
 <li><strong>Implemented — Quality Q2:</strong> options, warnings, atomic export and resource safeguards</li>
-<li><strong>WIP — Quality Q3–Q5:</strong> advanced format fidelity, contextual assets and broader evaluation</li>
+<li><strong>Completed — Quality Q3:</strong> format fidelity policies and acceptance fixtures</li>
+<li><strong>WIP — Quality Q4–Q5:</strong> contextual assets and broader evaluation</li>
 <li><strong>Planned — Phase F:</strong> Windows packaging after quality hardening</li>
 <li><strong>Planned:</strong> compatibility testing with major multimodal AI clients</li>
 </ul>
@@ -143,10 +144,10 @@ Representative integration coverage exists for every MVP format.
 | Category | Extensions | Dependency path | Verification |
 |---|---|---|:---:|
 | Plain text | `.txt` | Strict decoded source preservation | ✅ Passed |
-| Word | `.docx` | `markitdown[docx]` | ✅ Passed |
-| PDF | `.pdf` | `markitdown[pdf]` | ✅ Text-based PDF passed |
+| Word | `.docx` | Mammoth + protected semantic HTML | ✅ Tables, nested lists and notes |
+| PDF | `.pdf` | pdfplumber page geometry | ✅ Explicit columns and ruled tables |
 | PowerPoint | `.pptx` | `markitdown[pptx]` | ✅ Passed |
-| Excel | `.xlsx` | `markitdown[xlsx]` | ✅ Passed |
+| Excel | `.xlsx` | openpyxl + source XML literals | ✅ Values, formulas and metadata |
 | Tabular data | `.csv` | String fields + original source appendix | ✅ Passed |
 | Web documents | `.html`, `.htm` | Local HTML adapter + MarkItDown HTML parser | ✅ Passed |
 | Structured text | `.json`, `.xml` | Source-preserving fenced text | ✅ Passed |
@@ -178,7 +179,7 @@ flowchart LR
     UI[PySide6 GUI] -. controls .-> A
 ```
 
-The conversion path is local. TXT/JSON/XML/CSV/XLSX use dedicated fidelity paths; HTML/HTM preserve preformatted text and permitted local images. MarkItDown handles DOCX/PPTX/PDF text. `DocumentImageExtractor` retrieves OOXML media or PDF visuals; the media decorator embeds them as Base64. Limits reject oversized processing explicitly.
+The conversion path is local. TXT/JSON/XML/CSV/XLSX use dedicated fidelity paths; HTML/HTM preserve preformatted text and complex tables. Word uses Mammoth with protected table/note structures; PDF uses pdfplumber page geometry; PowerPoint combines MarkItDown with source-backed chart/connector metadata. `DocumentImageExtractor` retrieves visuals and the media decorator embeds Base64. Limits reject oversized processing explicitly.
 
 <a id="-quick-start"></a>
 
@@ -197,7 +198,7 @@ The conversion path is local. TXT/JSON/XML/CSV/XLSX use dedicated fidelity paths
 <p>No API key is required for local conversion.</p>
 <h3 id="run-the-tests">🧪 Test</h3>
 <pre><code>python -m pytest -q</code></pre>
-<p>Last verified: <code>119 passed</code></p>
+<p>Last verified: <code>134 passed</code> (2026-11-11)</p>
 </td>
 <td width="62%" valign="top">
 <h3 id="installation">📦 Installation</h3>
@@ -422,7 +423,7 @@ This design provides:
 
 The test suite focuses on application behavior and third-party integration boundaries. It does not pretend to test MarkItDown's internal algorithms as original project code.
 
-Q1 baseline: **80 → 92 passed**. Current suite: **119 passed**, including atomic-export failures, format fidelity, PDF modes, budgets, package round-trips, and complete copy/export from a shortened GUI preview. Passing smoke tests do not establish source fidelity for every complex document.
+Q1 baseline: **80 → 92 passed**. Current suite: **134 passed**, including fifteen Q3 acceptance cases for PDF columns/merged tables, Word nested lists/tables/footnotes, chart/connector metadata, exact XLSX numeric literals, and nested HTML code. Passing these fixtures does not establish fidelity for every possible layout. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md).
 
 Run reproducible synthetic probes with `python tools/audit_conversion_quality.py`. The script prints source/output comparisons and removes its temporary fixtures; it is not an accuracy benchmark. See the [audit](docs/CONVERSION_QUALITY_AUDIT.md) for observed losses and the measurement plan.
 
@@ -493,6 +494,8 @@ python -m pytest -q
 <li>CSV includes its original source; ambiguous delimiters require an explicit choice.</li>
 <li>OOXML images carry owner-part provenance in an appendix; full inline caption placement remains pending.</li>
 <li>PDF defaults to page images. Optional image extraction may omit masks/vector artwork; text mode omits visuals.</li>
+<li>PDF text defaults to one column; select <code>pdf_columns=2</code> through the API for equal-width two-column pages. Irregular layouts require review.</li>
+<li>Complex tables and footnotes can use semantic HTML; viewer support varies. Diagram metadata preserves source connections, not inferred meaning.</li>
 <li>Resource budgets reject oversized conversions but do not impose a hard process RAM/time limit.</li>
 <li>Cancel remaining finishes the current file. Preview is limited to 200,000 characters; Copy and Save retain all content.</li>
 <li>Encrypted or damaged files may fail.</li>
@@ -513,10 +516,10 @@ python -m pytest -q
 |---|---|---|
 | Language | Python 3.13 | Application and tests |
 | Desktop GUI | PySide6 6.12 | Implemented Phase D workflow |
-| Conversion | Microsoft MarkItDown 0.1.9 | Production conversion engine |
+| Conversion | Microsoft MarkItDown 0.1.9 + dedicated fidelity paths | Format-specific conversion |
 | Embedded media | Python Base64 + local OOXML/PDF extraction | Preserve images inside one `.md` file |
-| DOCX | Mammoth through `markitdown[docx]` | Word conversion |
-| PDF | pdfminer.six and pdfplumber through `markitdown[pdf]` | Text-based PDF conversion |
+| DOCX | Mammoth installed through `markitdown[docx]` | Semantic Word extraction with protected tables/notes |
+| PDF | pdfplumber installed through `markitdown[pdf]` | Page/column text and geometric tables |
 | PowerPoint | python-pptx through `markitdown[pptx]` | PPTX conversion |
 | Excel | openpyxl | Cell values, formulas, cached values and metadata |
 | Testing | pytest | Unit and integration tests |
@@ -538,9 +541,9 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 | E — Single-file media preservation | Extract document images and embed them as Base64 data URIs in the same Markdown file | ✅ Completed |
 | Quality Q1 | Architecture audit, synthetic fidelity probes, first whitespace regression fix | ✅ Completed |
 | Quality Q2 | Options/warnings, atomic export, resource safeguards, shared fence/table serializers | Implemented and tested |
-| Quality Q3 | Text/structured-data fidelity implemented; Office/PDF complex-layout acceptance remains | 🚧 WIP |
+| Quality Q3 | Format fidelity policies and source-backed acceptance; [scope and limits](docs/Q3_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q4 | Asset ZIP, provenance and PDF modes implemented; inline caption placement remains | 🚧 WIP |
-| Quality Q5 | 119 tests, ten-format baseline, cancellation/preview implemented; broader stress/golden corpus remains | 🚧 WIP |
+| Quality Q5 | 134 tests, ten-format baseline, cancellation/preview implemented; broader stress/golden corpus remains | 🚧 WIP |
 | Quality Q6 / F — Release | Documentation, clean-install checks, Windows packaging, license inventory, compatibility and release validation | Planned after quality gates |
 
 ### Phase E result
@@ -553,9 +556,9 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 - PaddleOCR, model packs, datasets, training scripts, and ML dependencies were removed.
 - Real DOCX image embedding and local PDF rendering are covered by tests.
 
-### Current: Quality Q3–Q5 acceptance
+### Current: Quality Q4–Q5 acceptance
 
-1. Expand Office/PDF fixtures for nested/merged structures and multi-column reading order.
+1. Retain the completed Q3 acceptance cases as format regressions.
 2. Improve inline asset/caption placement from source relationships.
 3. Expand stress, golden-corpus and offline validation beyond the current synthetic baseline.
 4. Complete quality gates before packaging in Q6/F.

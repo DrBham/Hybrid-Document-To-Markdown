@@ -2,6 +2,7 @@
 import csv
 import io
 import json
+import re
 from datetime import date, datetime, time
 from pathlib import Path
 
@@ -51,10 +52,16 @@ class FaithfulConverter:
             markdown += "\n## Original CSV\n\n" + fenced(text, "csv")
         else:
             markdown = text
+            if self.options.text_mode == "prose":
+                paragraphs = re.split(r"\n[ \t]*\n", text.replace("\r\n", "\n").replace("\r", "\n"))
+                markdown = "\n\n".join(" ".join(line.strip() for line in paragraph.splitlines()) for paragraph in paragraphs if paragraph.strip())
+                warnings = ("Explicit prose mode normalizes whitespace; use preserve mode for code, logs and exact formatting.",)
         return ConversionResult(source, suffix[1:], markdown, warnings)
 
     def _xlsx(self, source):
         from openpyxl import load_workbook
+        from .office_structure import worksheet_values
+        raw_values = worksheet_values(source)
         formulas = load_workbook(source, data_only=False, read_only=False)
         cached = None
         warnings = []
@@ -81,6 +88,9 @@ class FaithfulConverter:
                         if value is not None:
                             record = {"cell": cell.coordinate, "type": cell.data_type, "value": value,
                                       "number_format": cell.number_format}
+                            record.update(raw_values.get(sheet.title, {}).get(cell.coordinate, {}))
+                            if cell.data_type == "n" and record.get("xml_value") is not None:
+                                values[-1] = record["xml_value"]
                             if cell.hyperlink:
                                 record["hyperlink"] = cell.hyperlink.target
                             if cell.data_type == "f":

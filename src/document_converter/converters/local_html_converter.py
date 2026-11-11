@@ -21,6 +21,8 @@ class LocalHtmlConverter:
         for node in soup(["script", "style", "iframe", "object"]):
             node.decompose()
         for node in soup.find_all("pre"):
+            if node.find_parent("table") is not None:
+                continue  # Keep semantic <pre> inside its protected HTML table.
             token = "PRESERVED" + uuid4().hex.upper()
             preserved[token] = fenced(node.get_text(), "")
             node.replace_with(token)
@@ -50,7 +52,15 @@ class LocalHtmlConverter:
                 warnings.append("Unsupported link scheme removed.")
             elif not scheme and not address.startswith("#"):
                 warnings.append("Relative document links require their original companion files.")
+        for node in list(soup.find_all("table")):
+            if node.find_parent("table") is not None:
+                continue
+            if node.find(["td", "th"], attrs={"colspan": True}) or node.find(["td", "th"], attrs={"rowspan": True}) or node.find("table") or node.find("pre"):
+                token = "PRESERVEDTABLE" + uuid4().hex.upper()
+                preserved[token] = str(node)
+                node.replace_with(token)
+                warnings.append("Complex table preserved as HTML to retain cell spans and nesting.")
         markdown = HtmlConverter().convert_string(str(soup), keep_data_uris=True).markdown
-        for token, block in preserved.items():
+        for token, block in reversed(list(preserved.items())):
             markdown = markdown.replace(token, "\n\n" + block + "\n")
         return ConversionResult(source, source.suffix[1:], markdown, tuple(dict.fromkeys(warnings)))

@@ -2,13 +2,15 @@
 
 This report supplements the historical Q1 audit. Implemented behavior below is verified against synthetic fixtures. Complex-document acceptance remains open where explicitly listed; the complete Q2–Q5 programme must not be declared finished from smoke tests alone.
 
+Update 2026-11-11: Q3 acceptance is complete with **134 passing tests**. [Q3_ACCEPTANCE.md](Q3_ACCEPTANCE.md) supersedes the earlier Q3 pending items and documents policies/limits. The timing/memory table below remains a historical baseline of the previous implementation, not a benchmark of the new PDF/Office paths.
+
 ## Delivered checkpoints
 
 | Area | Delivered | Validation |
 |---|---|---|
 | Q2 | Backward-compatible result warnings, conversion options, atomic Markdown publication, ZIP/input/output/page/pixel/cell budgets, resource cleanup, shared fences and table escaping | Original suite plus replace failure, competing publisher, archive/output/page/pixel rejection |
 | Q3 | Exact decoded TXT, fenced JSON/XML, CSV dialect selection with original source, cell-based XLSX/formula/cache metadata and sheet selection, HTML pre blocks/local assets | Exact text, numeric strings, formula, merge metadata, namespaces/CDATA, multiline cells, image round-trip |
-| Q3 existing engines | DOCX and PPTX kept on their established engine; semantic sequence, table values, notes and media provenance covered | Real generated DOCX and PPTX fixtures |
+| Q3 completed | Word semantic tables/lists/notes, PDF columns/geometric tables, PowerPoint connector/chart source records, literal XLSX numeric XML | Fifteen source-backed acceptance cases; see Q3 report |
 | Q4 | Base64 default; optional ZIP with relative assets and hash deduplication; OOXML relationship provenance; PDF pages/images/text modes | Byte comparisons, ZIP references/deduplication, three PDF modes |
 | Q5 | Cooperative cancellation between files; bounded preview with full copy/export; warnings in GUI; isolated ten-format corpus with time and process memory | Offscreen GUI, cancellation/restart, network-blocked HTML fixture, resource/failure tests, corpus runner |
 
@@ -24,8 +26,10 @@ from document_converter.services.asset_package import AssetPackageExporter
 
 options = ConversionOptions(
     encoding="utf-8-sig",       # Explicit strict decoding; cp1252/utf-16 can be selected.
+    text_mode="preserve",       # Optional prose mode explicitly normalizes whitespace.
     csv_delimiter=None,          # Infer comma/semicolon/tab/pipe; specify when ambiguous.
     pdf_mode="pages",            # pages (default), images, or text
+    pdf_columns=1,               # 2 for equal-width two-column pages; explicit, not inferred.
     spreadsheet_view="formula", # formula or cached; metadata retains formula either way
     sheets=(),                  # All sheets, or a tuple of worksheet names
 )
@@ -67,7 +71,7 @@ Cancellation finishes the current file and marks remaining files cancelled. It c
 git diff --check
 ```
 
-Full suite: **119 passed in 9.06s**, Windows / Python 3.13.0. Corpus checks passed for all ten extensions in separate subprocesses. This is not a measured general-purpose accuracy percentage.
+Historical Q2–Q5 checkpoint: **119 passed in 9.06s**, Windows / Python 3.13.0. Corpus checks passed for all ten extensions in separate subprocesses. Current Q3 closure: **134 passed in 77.25s** (2026-11-11). Neither is a measured general-purpose accuracy percentage.
 
 One-run synthetic baseline (conversion elapsed time excludes router construction; peak memory includes imports, fixture generation and native allocations):
 
@@ -88,10 +92,10 @@ Each corpus result records its actual checks, source/output size, timing, warnin
 
 ## Remaining acceptance work
 
-- Q3: representative multi-column PDF/merged tables, DOCX nested lists/footnotes/merged cells, PPTX charts/diagram relationships, and XLSX original numeric XML lexemes need broader fixtures and format-specific work. Excel numeric values already rounded by the authoring application cannot be recovered. The tested exact long number is a string cell.
+- Q3 closed: tests now cover explicit PDF columns/merged tables, Word lists/footnotes/complex tables, PowerPoint chart/connector metadata, and XLSX numeric XML literals. The Q3 report records limits; arbitrary-layout perfection is not claimed.
 - Q4: OOXML images carry owner-part provenance in an appendix, not full inline caption placement. PDF extraction preserves native JPEG/JPX where supported by PDFium but other encodings may be re-encoded; masks/vector artwork may be absent. Unsupported extracted encodings fail with guidance to use pages mode. Text mode intentionally has no visual assets. No OCR or content interpretation is added.
 - Q5: large-document stress tests, a reviewed golden corpus of complex layouts, cancellation within a file, process timeouts and offline interception across every parser remain pending. Network blocking was tested on the local HTML path only. No fuzzing or complete security audit is claimed.
 - Exported relative hyperlinks can require external companion documents. ZIP export repackages supported Base64 image references only; it does not crawl links or fetch network resources.
 - Profiles are deferred until these source fidelity contracts stabilize. No additional parser dependency was introduced.
 
-Next checkpoint: extend Q3 source/expected fixtures for complex Office/PDF layouts, resolve observed failures, then finish Q4 contextual placement and Q5 stress/quality gates before Q6 release work.
+Next checkpoint: Q4 contextual placement and Q5 stress/quality gates before Q6 release work.
