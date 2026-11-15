@@ -6,7 +6,7 @@
 
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
-[![Development Status](https://img.shields.io/badge/status-User%20Audit%20WIP-D97706?style=for-the-badge)](#-roadmap)
+[![Development Status](https://img.shields.io/badge/status-Quality%20Q6%20WIP-D97706?style=for-the-badge)](#-roadmap)
 [![Tests](https://img.shields.io/badge/tests-205%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
@@ -30,7 +30,7 @@
 ---
 
 > [!IMPORTANT]
-> **Q5 testing and reliability is complete for its documented scope: 205 tests pass.** Conversion can be cancelled during a file, each built-in batch file has a timeout, and a ten-format corpus plus four stress cases pass. See [Q5 evidence and audit guide](docs/Q5_ACCEPTANCE.md), [Q4 media policies](docs/Q4_ACCEPTANCE.md), and [changelog](CHANGELOG.md). User audit is next; single-file Base64 remains the default.
+> **Q5 testing and reliability is complete for its documented scope: 205 tests pass.** Conversion can be cancelled during a file, each built-in batch file has a timeout, and a ten-format corpus plus four stress cases pass. See [Q5 evidence and audit guide](docs/Q5_ACCEPTANCE.md), [Q4 media policies](docs/Q4_ACCEPTANCE.md), and [changelog](CHANGELOG.md). Q6 error fixing, quality testing, and stabilization is now in progress; single-file Base64 remains the default.
 
 > [!NOTE]
 > This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
@@ -129,8 +129,8 @@
 <li><strong>Completed — Quality Q3:</strong> format fidelity policies and acceptance fixtures</li>
 <li><strong>Completed — Quality Q4:</strong> contextual media, deduplication and portable asset export</li>
 <li><strong>Completed — Quality Q5:</strong> source-backed corpus, stress evaluation, cancellation and timeouts</li>
-<li><strong>WIP — User audit:</strong> review all workflows and record corrections before release preparation</li>
-<li><strong>Planned — Phase F:</strong> Windows packaging after quality hardening</li>
+<li><strong>WIP — Quality Q6:</strong> audit workflows, fix errors, improve conversion quality, expand testing, and stabilize the application</li>
+<li><strong>Planned — Quality Q7:</strong> Windows installer, clean-install validation, release packaging, and distribution documentation</li>
 <li><strong>Planned:</strong> compatibility testing with major multimodal AI clients</li>
 </ul>
 </td>
@@ -550,8 +550,8 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 | Quality Q3 | Format fidelity policies and source-backed acceptance; [scope and limits](docs/Q3_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q4 | Source-context media, deduplication, PDF visual modes and portable ZIP; [scope and limits](docs/Q4_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q5 | 205 tests, ten-format semantic corpus, four stress cases, active cancellation, process deadlines and offline checks; [evidence](docs/Q5_ACCEPTANCE.md) | ✅ Completed |
-| User audit | Review conversion/export/GUI functions and address documented findings | 🚧 WIP |
-| Quality Q6 / F — Release | Clean-install checks, Windows packaging, license inventory, compatibility and release validation | Planned after user audit |
+| Quality Q6 — Fixing, testing, and stabilization | Audit conversion/export/GUI workflows, fix reproducible errors, improve all-format fidelity, complete drag-and-drop validation, expand regression tests, and establish evidence-based quality scores | 🚧 WIP |
+| Quality Q7 — Installer and release | Build the Windows installer, verify clean installation and uninstall/update behavior, audit bundled dependencies and licenses, test the packaged worker, document distribution, and prepare the GitHub release | Planned after Q6 quality gates |
 
 ### Phase E result
 
@@ -563,12 +563,13 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 - PaddleOCR, model packs, datasets, training scripts, and ML dependencies were removed.
 - Real DOCX image embedding and local PDF rendering are covered by tests.
 
-### Current: user audit before Q6/F
+### Current: Quality Q6 — fixing, testing, and stabilization
 
-1. Review the [Q5 audit guide and known limits](docs/Q5_ACCEPTANCE.md#user-audit).
-2. Compare representative personal documents with Markdown and exported assets.
-3. Record reproducible discrepancies, fix them, and retain regression cases.
-4. Proceed to clean-install and installer validation in Q6/F after the audit.
+1. Reproduce and fix the drag-and-drop failure while preserving Browse/Select File behavior.
+2. Audit PDF and every other supported converter using representative source documents.
+3. Fix reproducible conversion, asset, metadata, GUI, and export errors; add regression tests for each important correction.
+4. Establish documented quality scores for all ten formats and complete the Q6 acceptance gates.
+5. Begin Q7 installer and release validation only after Q6 is stable.
 
 The [implementation report](docs/QUALITY_IMPLEMENTATION.md) distinguishes delivered checkpoints from pending acceptance work. The [original audit](docs/CONVERSION_QUALITY_AUDIT.md) remains the historical baseline. Base64 remains available; advanced modes do not silently change the GUI default.
 
