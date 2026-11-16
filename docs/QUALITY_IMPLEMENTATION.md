@@ -8,7 +8,9 @@ Q4 checkpoint: **150 tests passed** after source-context placement, deduplicatio
 
 Q5 closure (2026-11-11): **205 tests passed in 40.50s**. Ten-format semantic goldens and four bounded stress cases passed three fresh-process runs each. Active cancellation, per-file deadlines, worker cleanup and Python network guards are implemented. [Q5_ACCEPTANCE.md](Q5_ACCEPTANCE.md) supersedes the earlier pending Q5 items and links the measurements. Q6 now owns auditing, fixing, testing, and stabilization; Q7 owns installer and release work.
 
-Q6 checkpoint 1 (2026-11-17): **220 tests passed in 47.16s**. Dropped files now determine their own supported extension instead of being rejected by the initial TXT Browse filter. Fifteen cases cover all extensions and Windows-style filename concerns while retaining the one-format batch contract. See [Q6_CHECKPOINT_1.md](Q6_CHECKPOINT_1.md). Q6 quality work continues; installer work is Q7.
+Q6 checkpoint 1 (2026-11-17): drag-and-drop type detection and Add documents routing are covered by seventeen cases. See [Q6_CHECKPOINT_1.md](Q6_CHECKPOINT_1.md).
+
+Q6 checkpoint 2 (2026-11-17): **242 tests passed in 33.46s**. All ten formats now pass one shared public-output contract; structured fidelity appendices have explicit metadata boundaries and an opt-out mode. The unchanged corpus passes **101/101 checks** across ten formats and four stress cases. See [Q6_CHECKPOINT_2.md](Q6_CHECKPOINT_2.md). Q6-C final audit remains; installer work is Q7.
 
 ## Delivered checkpoints
 
@@ -20,7 +22,7 @@ Q6 checkpoint 1 (2026-11-17): **220 tests passed in 47.16s**. Dropped files now 
 | Q4 | Base64 default; optional ZIP with relative assets and hash deduplication; OOXML relationship provenance; PDF pages/images/text modes | Byte comparisons, ZIP references/deduplication, three PDF modes |
 | Q5 | Disposable parser workers; active cancellation and deadlines; lazy parser imports; linear worksheet-cache reads; bounded preview and full copy/export | 205 tests; ten source-backed format cases and four stress cases; Python network guards; GUI heartbeat/cancel; crash, timeout and dependency failure recovery |
 
-New modules: `core/options.py`, `core/serialization.py`, `converters/faithful_converter.py`, `converters/local_html_converter.py`, `services/asset_package.py`. Existing router, result model, media extraction, exporter, batch service and GUI integrate these changes. Tests are in `tests/test_quality_hardening.py` and `tests/test_gui.py`.
+Shared quality modules include `core/options.py`, `core/serialization.py`, `core/output_contract.py`, `converters/faithful_converter.py`, `converters/local_html_converter.py`, and `services/asset_package.py`. Existing router, result model, media extraction, exporter, batch service and GUI integrate these policies. Tests include `tests/test_quality_hardening.py`, `tests/test_q6_quality.py`, and `tests/test_gui.py`.
 
 ## API and compatibility
 
@@ -38,6 +40,7 @@ options = ConversionOptions(
     pdf_columns=1,               # 2 for equal-width two-column pages; explicit, not inferred.
     media_placement="context",  # Default source placement; "appendix" is also available.
     spreadsheet_view="formula", # formula or cached; metadata retains formula either way
+    metadata_mode="embedded",   # embedded (default) or omit source-evidence appendices
     sheets=(),                  # All sheets, or a tuple of worksheet names
 )
 result = ConverterRouter(options=options).convert(Path("report.xlsx"))
@@ -106,4 +109,4 @@ Each corpus result records its actual checks, source/output size, timing, warnin
 - Exported relative hyperlinks can require external companion documents. ZIP export repackages supported Base64 image references only; it does not crawl links or fetch network resources.
 - Profiles are deferred until these source fidelity contracts stabilize. No additional parser dependency was introduced.
 
-Next checkpoint: Q6 shared output policies and format-quality audit. Q7 owns clean installation, installer, and release packaging after Q6 gates pass.
+Next checkpoint: Q6-C final repository/workflow audit and go/no-go decision. Q7 owns clean installation, installer, and release packaging after Q6 gates pass.

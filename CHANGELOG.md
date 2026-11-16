@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Q6-B shared output policy and all-format audit (2026-11-17)
+
+- Add a router-level output contract for source identity, format identity, UTF-8 safety, NUL rejection, unresolved-placeholder rejection, warning canonicalization, and final output limits.
+- Add explicit structured-metadata boundaries for XLSX cell records, PDF table geometry, and PPTX source structure while preserving fidelity-first Markdown by default.
+- Add `metadata_mode="omit"` for consumers that want readable content without diagnostic source appendices.
+- Add twenty Q6-B regression cases, including a direct gate for TXT, CSV, JSON, XML, HTML, HTM, DOCX, PPTX, XLSX, and PDF.
+- Validation: **242 tests pass**; the unchanged source-authored corpus passes **101/101 checks** across ten formats and four stress cases. See `docs/Q6_CHECKPOINT_2.md`.
+
 ## Unreleased — Q6 drag-and-drop P0 fixed (2026-11-17)
 
 - Detect the extension of files dropped from local URL payloads instead of applying the initial TXT Browse filter.

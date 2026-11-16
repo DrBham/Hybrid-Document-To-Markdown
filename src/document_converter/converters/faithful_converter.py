@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ..core.models import ConversionResult
 from ..core.options import ConversionOptions
-from ..core.serialization import fenced, table
+from ..core.serialization import fenced, metadata_section, table
 
 
 class FaithfulConverter:
@@ -116,10 +116,16 @@ class FaithfulConverter:
                 for part, location, alt, data in source_images.get(sheet.title, []):
                     mime = MIME_TYPES.get(Path(part).suffix.lower(), "application/octet-stream")
                     sections.append(f"Image anchored at {location}:\n\n" + images.add(data, mime, f"{sheet.title} — {location}" + (f": {alt}" if alt else "")))
-                sections.append("### Cell metadata\n\n" + fenced(json.dumps({
-                    "sheet": sheet.title, "merged_ranges": [str(r) for r in sheet.merged_cells.ranges],
-                    "cells": metadata,
-                }, ensure_ascii=False, indent=2, default=str), "json"))
+                if self.options.metadata_mode == "embedded":
+                    sections.append(metadata_section(
+                        f"Cell metadata — {sheet.title}",
+                        fenced(json.dumps({
+                            "sheet": sheet.title,
+                            "merged_ranges": [str(r) for r in sheet.merged_cells.ranges],
+                            "cells": metadata,
+                        }, ensure_ascii=False, indent=2, default=str), "json"),
+                        "spreadsheet-cells",
+                    ))
         finally:
             formulas.close()
             if cached is not None:

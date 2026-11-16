@@ -8,11 +8,16 @@ from bs4 import BeautifulSoup
 from markitdown.converters._html_converter import HtmlConverter
 
 from ..core.models import ConversionResult
+from ..core.options import ConversionOptions
+from ..core.serialization import metadata_section
 from ..embedded_media.placement import ImageCollector
 from .office_structure import presentation_structure
 
 
 class SemanticOfficeConverter:
+    def __init__(self, options: ConversionOptions | None = None):
+        self.options = options or ConversionOptions()
+
     def convert(self, source: Path):
         images = ImageCollector()
         if source.suffix.lower() == ".pptx":
@@ -30,8 +35,13 @@ class SemanticOfficeConverter:
             with source.open("rb") as stream:
                 converted = PositionedPptx().convert(stream, StreamInfo(extension=".pptx"))
             result = ConversionResult(source, "pptx", converted.markdown, inline_images=tuple(images.images))
-            result.markdown += "\n\n" + presentation_structure(source)
-            result.warnings += ("Presentation topology and chart source data are preserved in the source-structure appendix; spatial relationships are not inferred.",)
+            if self.options.metadata_mode == "embedded":
+                result.markdown += "\n\n" + metadata_section(
+                    "Presentation source structure",
+                    presentation_structure(source),
+                    "presentation-structure",
+                )
+                result.warnings += ("Presentation topology and chart source data are preserved in the source-structure appendix; spatial relationships are not inferred.",)
             return result
         @mammoth.images.img_element
         def collect_image(image):

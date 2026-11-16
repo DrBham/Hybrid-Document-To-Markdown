@@ -11,6 +11,7 @@ class ConversionOptions:
     pdf_columns: int = 1
     media_placement: str = "context"
     spreadsheet_view: str = "formula"
+    metadata_mode: str = "embedded"
     sheets: tuple[str, ...] = ()
     max_archive_entries: int = 10000
     max_uncompressed_bytes: int = 256 * 1024 * 1024
@@ -32,6 +33,8 @@ class ConversionOptions:
             raise ValueError("csv_delimiter must be one character")
         if self.spreadsheet_view not in {"formula", "cached"}:
             raise ValueError("spreadsheet_view must be formula or cached")
+        if self.metadata_mode not in {"embedded", "omit"}:
+            raise ValueError("metadata_mode must be embedded or omit")
         for name in ("max_archive_entries", "max_uncompressed_bytes", "max_output_bytes",
                      "max_pdf_pages", "max_page_pixels", "max_cells"):
             if getattr(self, name) <= 0:

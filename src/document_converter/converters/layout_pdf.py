@@ -6,7 +6,7 @@ from uuid import uuid4
 import pdfplumber
 
 from ..core.models import ConversionResult, PageMediaSlot
-from ..core.serialization import fenced
+from ..core.serialization import fenced, metadata_section
 
 
 class LayoutPdfConverter:
@@ -48,7 +48,12 @@ class LayoutPdfConverter:
                             content.append(f'<td colspan="{colspan}" rowspan="{rowspan}">{text}</td>')
                         content.append("</tr>")
                     content.append("</table>")
-                    content.append("\nTable source geometry:\n\n" + fenced(json.dumps(geometry, ensure_ascii=False), "json"))
+                    if self.options.metadata_mode == "embedded":
+                        content.append(metadata_section(
+                            "Table source geometry",
+                            fenced(json.dumps(geometry, ensure_ascii=False), "json"),
+                            "pdf-table-geometry",
+                        ))
                     blocks.append((detected.bbox[1], detected.bbox[0], "\n".join(content)))
                 def outside_tables(obj):
                     if obj.get("object_type") != "char":

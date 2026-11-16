@@ -1,0 +1,363 @@
+{
+  "python": "3.13.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "method": "Independent generated sources; checked-in semantic goldens; fresh process per case/run. Timing excludes fixture generation, includes router/import/conversion. Peak includes generation, conversion and asset validation. Python socket guard is not an OS sandbox. No general accuracy percentage.",
+  "passed": true,
+  "results": [
+    {
+      "case": "txt",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.018281,
+      "input_bytes": 70,
+      "output_bytes": 70,
+      "process_peak_bytes": 24133632,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "csv",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.010731,
+      "input_bytes": 45,
+      "output_bytes": 155,
+      "process_peak_bytes": 23957504,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "json",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.011467,
+      "input_bytes": 77,
+      "output_bytes": 90,
+      "process_peak_bytes": 24281088,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "xml",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.020271,
+      "input_bytes": 138,
+      "output_bytes": 150,
+      "process_peak_bytes": 24260608,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "html",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "forbidden_fragment_0": true,
+        "forbidden_fragment_1": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.325772,
+      "input_bytes": 312,
+      "output_bytes": 348,
+      "process_peak_bytes": 125759488,
+      "warning_count": 3,
+      "blocked_local_bind_probes": 1,
+      "run": 1
+    },
+    {
+      "case": "htm",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.241481,
+      "input_bytes": 179,
+      "output_bytes": 231,
+      "process_peak_bytes": 125419520,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 1,
+      "run": 1
+    },
+    {
+      "case": "docx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.380049,
+      "input_bytes": 37334,
+      "output_bytes": 613,
+      "process_peak_bytes": 143933440,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 1,
+      "run": 1
+    },
+    {
+      "case": "pptx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.131404,
+      "input_bytes": 34320,
+      "output_bytes": 1926,
+      "process_peak_bytes": 128126976,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 1,
+      "run": 1
+    },
+    {
+      "case": "xlsx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.048492,
+      "input_bytes": 6704,
+      "output_bytes": 2676,
+      "process_peak_bytes": 46002176,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "pdf",
+      "checks": {
+        "source_fragment_0": true,
+        "source_order": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.208327,
+      "input_bytes": 717,
+      "output_bytes": 61,
+      "process_peak_bytes": 43307008,
+      "warning_count": 2,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "stress-txt",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.037231,
+      "input_bytes": 2700004,
+      "output_bytes": 2700004,
+      "process_peak_bytes": 34881536,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "stress-csv",
+      "checks": {
+        "table_rows": true,
+        "raw_csv": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.134916,
+      "input_bytes": 360014,
+      "output_bytes": 880085,
+      "process_peak_bytes": 32821248,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "stress-xlsx",
+      "checks": {
+        "table_rows": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.46297,
+      "input_bytes": 59200,
+      "output_bytes": 3147568,
+      "process_peak_bytes": 81645568,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "stress-pdf",
+      "checks": {
+        "source_order": true,
+        "page_count": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.277244,
+      "input_bytes": 8263,
+      "output_bytes": 649,
+      "process_peak_bytes": 43974656,
+      "warning_count": 2,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    }
+  ],
+  "summary": [
+    {
+      "case": "txt",
+      "runs": 1,
+      "median_seconds": 0.018281,
+      "max_peak_bytes": 24133632
+    },
+    {
+      "case": "csv",
+      "runs": 1,
+      "median_seconds": 0.010731,
+      "max_peak_bytes": 23957504
+    },
+    {
+      "case": "json",
+      "runs": 1,
+      "median_seconds": 0.011467,
+      "max_peak_bytes": 24281088
+    },
+    {
+      "case": "xml",
+      "runs": 1,
+      "median_seconds": 0.020271,
+      "max_peak_bytes": 24260608
+    },
+    {
+      "case": "html",
+      "runs": 1,
+      "median_seconds": 1.325772,
+      "max_peak_bytes": 125759488
+    },
+    {
+      "case": "htm",
+      "runs": 1,
+      "median_seconds": 1.241481,
+      "max_peak_bytes": 125419520
+    },
+    {
+      "case": "docx",
+      "runs": 1,
+      "median_seconds": 1.380049,
+      "max_peak_bytes": 143933440
+    },
+    {
+      "case": "pptx",
+      "runs": 1,
+      "median_seconds": 1.131404,
+      "max_peak_bytes": 128126976
+    },
+    {
+      "case": "xlsx",
+      "runs": 1,
+      "median_seconds": 0.048492,
+      "max_peak_bytes": 46002176
+    },
+    {
+      "case": "pdf",
+      "runs": 1,
+      "median_seconds": 0.208327,
+      "max_peak_bytes": 43307008
+    },
+    {
+      "case": "stress-txt",
+      "runs": 1,
+      "median_seconds": 0.037231,
+      "max_peak_bytes": 34881536
+    },
+    {
+      "case": "stress-csv",
+      "runs": 1,
+      "median_seconds": 0.134916,
+      "max_peak_bytes": 32821248
+    },
+    {
+      "case": "stress-xlsx",
+      "runs": 1,
+      "median_seconds": 0.46297,
+      "max_peak_bytes": 81645568
+    },
+    {
+      "case": "stress-pdf",
+      "runs": 1,
+      "median_seconds": 0.277244,
+      "max_peak_bytes": 43974656
+    }
+  ]
+}

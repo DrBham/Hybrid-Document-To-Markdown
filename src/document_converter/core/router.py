@@ -4,6 +4,7 @@ from .base_converter import BaseConverter
 from .models import ConversionResult
 from .validator import SUPPORTED_FORMATS, validate_file
 from .options import ConversionOptions
+from .output_contract import finalize_result
 from zipfile import ZipFile
 
 
@@ -33,7 +34,7 @@ class _LazyConverter:
                     base = LayoutPdfConverter(options)
                 else:
                     from ..converters.semantic_office import SemanticOfficeConverter
-                    base = SemanticOfficeConverter()
+                    base = SemanticOfficeConverter(options)
                 self.engine = EmbeddedMediaDocumentConverter(base, options=options)
         return self.engine.convert(path)
 
@@ -86,6 +87,8 @@ class ConverterRouter:
         converter = self.converters[extension]
 
         result = converter.convert(file_path)
-        if len(result.markdown.encode("utf-8")) > self.options.max_output_bytes:
-            raise ValueError("Markdown exceeds max_output_bytes")
-        return result
+        return finalize_result(
+            file_path,
+            result,
+            max_output_bytes=self.options.max_output_bytes,
+        )
