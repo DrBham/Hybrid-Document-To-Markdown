@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — Q6 drag-and-drop P0 fixed (2026-11-17)
+
+- Detect the extension of files dropped from local URL payloads instead of applying the initial TXT Browse filter.
+- Accept drag-enter and drag-move only when at least one existing local file uses a supported extension; decode Windows file URLs through Qt.
+- Keep same-extension batch policy, reject mixed supported formats atomically, skip unsupported files with feedback, and preserve the existing Browse filter workflow.
+- Clarify the GUI helper text: the selector filters Browse while drag-and-drop detects the file type automatically.
+- Add fifteen Q6 GUI cases covering all ten extensions, uppercase names, spaces, Unicode, multiple files, unsupported payloads, mixed formats, visual drag state, and Browse regression.
+- Validation: 27 focused GUI tests and the complete **220-test** suite pass. Native Explorer automation could not run because the Codex Windows UI helper failed to initialize; a manual checklist is documented.
+
 ## Unreleased — Q5 reliability and evaluation complete (2026-11-11)
 
 - Run built-in batch conversions in disposable parser processes with active cancellation, a configurable 120-second per-file deadline, private scratch cleanup and independent failure outcomes.
@@ -8,7 +17,7 @@
 - Read Excel formula caches in one pass instead of repeatedly reparsing worksheet XML. The 5,000-formula fixture previously timed out at 120 seconds; the new three-run median is 0.503206 seconds on the recorded machine.
 - Add source-authored semantic goldens for ten extensions, four bounded stress cases and a benchmark runner that fails on broken gates.
 - Add 55 regression cases, including actual worker results, cancellation, crashes, missing dependencies, empty/malformed documents and GUI heartbeat checks. Full suite: 205 passed in 40.50s.
-- Record 42 passing evaluation runs with timing/memory methodology; update README and roadmap to user audit before Q6/F packaging. No new dependency or model is added.
+- Record 42 passing evaluation runs with timing/memory methodology; update README and roadmap for stabilization before packaging. No new dependency or model is added.
 
 ## Unreleased — Q4 contextual media complete (2026-11-11)
 

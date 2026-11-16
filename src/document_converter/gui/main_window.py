@@ -5,11 +5,20 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QStandardPaths, Qt, QThread, Signal, Slot
+from PySide6.QtCore import (
+    QMimeData,
+    QObject,
+    QStandardPaths,
+    Qt,
+    QThread,
+    Signal,
+    Slot,
+)
 from PySide6.QtGui import (
     QCloseEvent,
     QCursor,
     QDragEnterEvent,
+    QDragMoveEvent,
     QDropEvent,
     QFontDatabase,
     QIcon,
@@ -90,7 +99,7 @@ class DropZone(QFrame):
         title.setObjectName("sectionTitle")
 
         helper = QLabel(
-            "Choose a file type, then browse or drag matching files into this panel."
+            "Choose a browse filter, or drag files here to detect their type automatically."
         )
         helper.setObjectName("mutedText")
         helper.setWordWrap(True)
@@ -103,7 +112,7 @@ class DropZone(QFrame):
         self.format_selector = QComboBox()
         self.format_selector.setAccessibleName("Document file type")
         self.format_selector.setToolTip(
-            "Limit browsing and drag-and-drop to one supported extension"
+            "Limit the file picker to one extension; dropped files are detected automatically"
         )
         for label, extensions in FORMAT_OPTIONS:
             self.format_selector.addItem(label, extensions)
@@ -139,10 +148,11 @@ class DropZone(QFrame):
             for extension in self.selected_extensions()
         )
         self.drop_hint.setText(
-            f"Drag and drop {extensions} files into this panel."
+            f"Browse filter: {extensions} · Drag any supported local documents here."
         )
         self.setAccessibleDescription(
-            f"Accepts {extensions} files. Press Enter to open the file picker."
+            f"Browse filter is {extensions}. Drag supported local documents here, "
+            "or press Enter to open the file picker."
         )
 
     def selected_extensions(self) -> tuple[str, ...]:
@@ -172,10 +182,35 @@ class DropZone(QFrame):
         self.style().unpolish(self)
         self.style().polish(self)
 
+    @staticmethod
+    def _local_paths(mime_data: QMimeData) -> list[str]:
+        """Return decoded local files from Explorer-style URL payloads."""
+        if not mime_data.hasUrls():
+            return []
+        return [
+            url.toLocalFile()
+            for url in mime_data.urls()
+            if url.isLocalFile() and url.toLocalFile()
+        ]
+
+    @classmethod
+    def _has_supported_local_file(cls, mime_data: QMimeData) -> bool:
+        return any(
+            Path(path).is_file()
+            and Path(path).suffix.lower() in SUPPORTED_FORMATS
+            for path in cls._local_paths(mime_data)
+        )
+
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
-        if event.mimeData().hasUrls():
+        if self._has_supported_local_file(event.mimeData()):
             event.acceptProposedAction()
             self._set_drag_active(True)
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event: QDragMoveEvent) -> None:
+        if self._has_supported_local_file(event.mimeData()):
+            event.acceptProposedAction()
         else:
             event.ignore()
 
@@ -185,11 +220,7 @@ class DropZone(QFrame):
 
     def dropEvent(self, event: QDropEvent) -> None:
         self._set_drag_active(False)
-        paths = [
-            url.toLocalFile()
-            for url in event.mimeData().urls()
-            if url.isLocalFile()
-        ]
+        paths = self._local_paths(event.mimeData())
         if paths:
             self.paths_dropped.emit(paths)
             event.acceptProposedAction()
@@ -540,7 +571,7 @@ class MainWindow(QMainWindow):
 
     def _connect_signals(self) -> None:
         self.drop_zone.browse_requested.connect(self._choose_files)
-        self.drop_zone.paths_dropped.connect(self.add_files)
+        self.drop_zone.paths_dropped.connect(self._add_dropped_files)
         self.remove_button.clicked.connect(self._remove_selected)
         self.clear_button.clicked.connect(self._clear_files)
         self.choose_output_button.clicked.connect(self._choose_output_directory)
@@ -599,6 +630,41 @@ class MainWindow(QMainWindow):
         )
         if paths:
             self.add_files(paths)
+
+    @Slot(list)
+    def _add_dropped_files(self, raw_paths: Iterable[str | Path]) -> None:
+        """Detect a dropped batch type instead of applying the selector default."""
+        candidates = [Path(path) for path in raw_paths]
+        supported = [
+            path
+            for path in candidates
+            if path.is_file() and path.suffix.lower() in SUPPORTED_FORMATS
+        ]
+        if not supported:
+            self._show_error(
+                "No supported local files were dropped. Use TXT, DOCX, PDF, "
+                "PPTX, XLSX, CSV, HTML, HTM, JSON, or XML."
+            )
+            return
+
+        dropped_extensions = {path.suffix.lower() for path in supported}
+        if len(dropped_extensions) > 1:
+            self._show_error(
+                "Dropped files use different formats. Add one file type per "
+                "batch, then clear the list before adding another type."
+            )
+            return
+
+        extension = next(iter(dropped_extensions))
+        if self._files and self._files[0].suffix.lower() != extension:
+            self._show_error(
+                f"The current batch uses {self._files[0].suffix.upper()}. "
+                "Clear it before dropping another file type."
+            )
+            return
+
+        self.drop_zone.select_extension(extension)
+        self.add_files(candidates)
 
     @Slot(list)
     def add_files(self, raw_paths: Iterable[str | Path]) -> None:

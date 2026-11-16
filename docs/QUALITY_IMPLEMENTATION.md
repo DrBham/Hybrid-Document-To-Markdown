@@ -6,7 +6,9 @@ Update 2026-11-11: Q3 acceptance is complete with **134 passing tests**. [Q3_ACC
 
 Q4 checkpoint: **150 tests passed** after source-context placement, deduplication and portable asset export acceptance. [Q4_ACCEPTANCE.md](Q4_ACCEPTANCE.md) defines its scope and limitations.
 
-Q5 closure (2026-11-11): **205 tests passed in 40.50s**. Ten-format semantic goldens and four bounded stress cases passed three fresh-process runs each. Active cancellation, per-file deadlines, worker cleanup and Python network guards are implemented. [Q5_ACCEPTANCE.md](Q5_ACCEPTANCE.md) supersedes the earlier pending Q5 items and links the measurements. User audit precedes Q6/F release work.
+Q5 closure (2026-11-11): **205 tests passed in 40.50s**. Ten-format semantic goldens and four bounded stress cases passed three fresh-process runs each. Active cancellation, per-file deadlines, worker cleanup and Python network guards are implemented. [Q5_ACCEPTANCE.md](Q5_ACCEPTANCE.md) supersedes the earlier pending Q5 items and links the measurements. Q6 now owns auditing, fixing, testing, and stabilization; Q7 owns installer and release work.
+
+Q6 checkpoint 1 (2026-11-17): **220 tests passed in 47.16s**. Dropped files now determine their own supported extension instead of being rejected by the initial TXT Browse filter. Fifteen cases cover all extensions and Windows-style filename concerns while retaining the one-format batch contract. See [Q6_CHECKPOINT_1.md](Q6_CHECKPOINT_1.md). Q6 quality work continues; installer work is Q7.
 
 ## Delivered checkpoints
 
@@ -104,4 +106,4 @@ Each corpus result records its actual checks, source/output size, timing, warnin
 - Exported relative hyperlinks can require external companion documents. ZIP export repackages supported Base64 image references only; it does not crawl links or fetch network resources.
 - Profiles are deferred until these source fidelity contracts stabilize. No additional parser dependency was introduced.
 
-Next checkpoint: user audit and reproducible corrections, then Q6/F clean installation and release packaging.
+Next checkpoint: Q6 shared output policies and format-quality audit. Q7 owns clean installation, installer, and release packaging after Q6 gates pass.

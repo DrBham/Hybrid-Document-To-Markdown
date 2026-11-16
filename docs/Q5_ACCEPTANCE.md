@@ -1,6 +1,6 @@
 # Q5 — Testing, performance and reliability
 
-Completed on 2026-11-11 for the scope below. **205 tests passed in 40.50 seconds** on Windows 11 / Python 3.13.0. The evaluation runner passed **42/42 case runs**: ten formats and four stress cases, each repeated three times in a fresh process. This is a regression baseline, not a general document accuracy score. User audit is the next checkpoint.
+Completed on 2026-11-11 for the scope below. **205 tests passed in 40.50 seconds** on Windows 11 / Python 3.13.0. The evaluation runner passed **42/42 case runs**: ten formats and four stress cases, each repeated three times in a fresh process. This is a regression baseline, not a general document accuracy score. Q6 continues with auditing, fixing, testing, and stabilization.
 
 ## Checkpoints and evidence
 
@@ -122,4 +122,4 @@ The runner writes no source-document contents to its report. It removes generate
 
 Record the source format, chosen options, expected content, observed difference and minimal non-sensitive reproduction for any finding. Fixes should gain regression cases. This audit can reveal gaps beyond the generated corpus and is not represented as already completed.
 
-Remaining limits: no hard RAM sandbox, no native-network interception proof, no exhaustive fuzzing, no real-world accuracy guarantee, and no installer/frozen-executable or cross-platform verification in Q5. Temporary data is removed through normal process cleanup, not secure erasure or power-loss recovery. A new child per file adds startup overhead. Q6/F will validate clean installation, frozen worker launching, dependencies/licenses and packaging after user audit.
+Remaining limits: no hard RAM sandbox, no native-network interception proof, no exhaustive fuzzing, no real-world accuracy guarantee, and no installer/frozen-executable or cross-platform verification in Q5. Temporary data is removed through normal process cleanup, not secure erasure or power-loss recovery. A new child per file adds startup overhead. Q6 performs fixing, testing, and stabilization; Q7 will validate clean installation, frozen worker launching, dependencies/licenses, and packaging.

@@ -7,7 +7,7 @@
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
 [![Development Status](https://img.shields.io/badge/status-Quality%20Q6%20WIP-D97706?style=for-the-badge)](#-roadmap)
-[![Tests](https://img.shields.io/badge/tests-205%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
+[![Tests](https://img.shields.io/badge/tests-220%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
 [![MarkItDown](https://img.shields.io/badge/MarkItDown-0.1.9-2563EB?style=flat-square)](https://github.com/microsoft/markitdown)
@@ -30,7 +30,7 @@
 ---
 
 > [!IMPORTANT]
-> **Q5 testing and reliability is complete for its documented scope: 205 tests pass.** Conversion can be cancelled during a file, each built-in batch file has a timeout, and a ten-format corpus plus four stress cases pass. See [Q5 evidence and audit guide](docs/Q5_ACCEPTANCE.md), [Q4 media policies](docs/Q4_ACCEPTANCE.md), and [changelog](CHANGELOG.md). Q6 error fixing, quality testing, and stabilization is now in progress; single-file Base64 remains the default.
+> **Q6 stabilization is in progress: 220 tests pass.** The first Q6 checkpoint fixed drag-and-drop type detection and covers all ten extensions, uppercase names, spaces, Unicode, same-type batches, unsupported files, mixed-format rejection, and the Browse fallback. See the [Q6 checkpoint report](docs/Q6_CHECKPOINT_1.md), [Q5 evidence](docs/Q5_ACCEPTANCE.md), and [changelog](CHANGELOG.md). Single-file Base64 remains the default.
 
 > [!NOTE]
 > This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
@@ -118,7 +118,7 @@
 <li>Single-file Markdown output with Base64-embedded images</li>
 <li>No OCR runtime, model pack, dataset, or training requirement</li>
 <li>Real DOCX image-to-Base64 integration coverage</li>
-<li>205 passing automated tests, including format fidelity, contextual media and process reliability</li>
+<li>220 passing automated tests, including format fidelity, contextual media, process reliability, and drag-and-drop acceptance</li>
 </ul>
 </td>
 <td width="50%" valign="top">
@@ -200,7 +200,7 @@ The conversion path is local. TXT/JSON/XML/CSV/XLSX use dedicated fidelity paths
 <p>No API key is required for local conversion.</p>
 <h3 id="run-the-tests">🧪 Test</h3>
 <pre><code>python -m pytest -q</code></pre>
-<p>Last verified: <code>205 passed</code> (2026-11-11)</p>
+<p>Last verified: <code>220 passed</code> (2026-11-17)</p>
 </td>
 <td width="62%" valign="top">
 <h3 id="installation">📦 Installation</h3>
@@ -231,7 +231,7 @@ $env:PYTHONPATH = "src"
 python -m document_converter
 ```
 
-The file-type selector starts at TXT. Choose another format when needed, then browse or drag matching documents, convert them, review a result, and choose an output folder. “Save Markdown” appears after at least one conversion succeeds. A worker thread supervises a separate parser process, so the window remains responsive. “Cancel conversion” stops the active file and skips remaining files while keeping completed results. Each file has a 120-second deadline, including process startup; advanced callers can configure it through `BatchConverter(timeout_seconds=...)`.
+The file-type selector starts at TXT and filters the Browse dialog. Dropping local documents detects their extension automatically and updates the selector; one batch still contains one file type. Then convert the files, review a result, and choose an output folder. “Save Markdown” appears after at least one conversion succeeds. A worker thread supervises a separate parser process, so the window remains responsive. “Cancel conversion” stops the active file and skips remaining files while keeping completed results. Each file has a 120-second deadline, including process startup; advanced callers can configure it through `BatchConverter(timeout_seconds=...)`.
 
 ### 🖼️ Single-File Image Embedding
 
@@ -427,7 +427,7 @@ This design provides:
 
 The test suite focuses on application behavior and third-party integration boundaries. It does not pretend to test MarkItDown's internal algorithms as original project code.
 
-Q1 baseline: **80 → 92 passed**. Current suite: **205 passed**, including fifteen Q3 format cases, sixteen Q4 media cases and 55 added Q5 cases. Q5 covers source comparisons for all ten extensions, four stress cases, active cancellation, timeouts, parser crashes, missing dependencies, offline guards and GUI responsiveness. Passing these fixtures does not establish fidelity for every possible layout. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md), [Q4 acceptance](docs/Q4_ACCEPTANCE.md) and [Q5 evidence](docs/Q5_ACCEPTANCE.md).
+Q1 baseline: **80 → 92 passed**. Current suite: **220 passed**, including fifteen Q3 format cases, sixteen Q4 media cases, 55 added Q5 cases, and fifteen Q6 drag-and-drop cases. Q6 verifies Qt drag-enter/move/drop behavior and all ten supported extensions while preserving Browse behavior. Passing these fixtures does not establish fidelity for every possible layout or replace a native Windows Explorer acceptance pass. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md), [Q4 acceptance](docs/Q4_ACCEPTANCE.md), [Q5 evidence](docs/Q5_ACCEPTANCE.md), and the [Q6 checkpoint report](docs/Q6_CHECKPOINT_1.md).
 
 Run reproducible synthetic probes with `python tools/audit_conversion_quality.py`. The script prints source/output comparisons and removes its temporary fixtures; it is not an accuracy benchmark. See the [audit](docs/CONVERSION_QUALITY_AUDIT.md) for observed losses and the measurement plan.
 
@@ -550,7 +550,7 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 | Quality Q3 | Format fidelity policies and source-backed acceptance; [scope and limits](docs/Q3_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q4 | Source-context media, deduplication, PDF visual modes and portable ZIP; [scope and limits](docs/Q4_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q5 | 205 tests, ten-format semantic corpus, four stress cases, active cancellation, process deadlines and offline checks; [evidence](docs/Q5_ACCEPTANCE.md) | ✅ Completed |
-| Quality Q6 — Fixing, testing, and stabilization | Audit conversion/export/GUI workflows, fix reproducible errors, improve all-format fidelity, complete drag-and-drop validation, expand regression tests, and establish evidence-based quality scores | 🚧 WIP |
+| Quality Q6 — Fixing, testing, and stabilization | Drag-and-drop P0 fixed and covered by automated Qt events; native Explorer acceptance remains. Next: shared output policies, PDF/all-format fidelity, regression expansion, and evidence-based quality scores; [checkpoint report](docs/Q6_CHECKPOINT_1.md) | 🚧 WIP |
 | Quality Q7 — Installer and release | Build the Windows installer, verify clean installation and uninstall/update behavior, audit bundled dependencies and licenses, test the packaged worker, document distribution, and prepare the GitHub release | Planned after Q6 quality gates |
 
 ### Phase E result
@@ -565,11 +565,11 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 
 ### Current: Quality Q6 — fixing, testing, and stabilization
 
-1. Reproduce and fix the drag-and-drop failure while preserving Browse/Select File behavior.
-2. Audit PDF and every other supported converter using representative source documents.
-3. Fix reproducible conversion, asset, metadata, GUI, and export errors; add regression tests for each important correction.
-4. Establish documented quality scores for all ten formats and complete the Q6 acceptance gates.
-5. Begin Q7 installer and release validation only after Q6 is stable.
+1. Complete the native Windows Explorer drag-and-drop checklist recorded in the [Q6 checkpoint report](docs/Q6_CHECKPOINT_1.md); the automated P0 gate is complete.
+2. Standardize shared output validation, table selection, metadata separation, and conversion profiles where evidence supports them.
+3. Audit PDF and every other supported converter using representative source documents.
+4. Fix reproducible conversion, asset, metadata, GUI, and export errors; retain regression tests for each important correction.
+5. Establish documented quality scores for all ten formats, complete Q6 gates, then begin Q7 installer work.
 
 The [implementation report](docs/QUALITY_IMPLEMENTATION.md) distinguishes delivered checkpoints from pending acceptance work. The [original audit](docs/CONVERSION_QUALITY_AUDIT.md) remains the historical baseline. Base64 remains available; advanced modes do not silently change the GUI default.
 

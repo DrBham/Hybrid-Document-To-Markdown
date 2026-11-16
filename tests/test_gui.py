@@ -6,8 +6,9 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 import pytest
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QMimeData, QPoint, QPointF, QUrl, Qt
 from PySide6.QtCore import QTimer
+from PySide6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent
 from PySide6.QtWidgets import QPlainTextEdit
 
 from document_converter.core.models import (
@@ -39,6 +40,25 @@ def create_files(tmp_path: Path, *names: str) -> list[Path]:
     return paths
 
 
+def file_mime(*paths: Path) -> QMimeData:
+    mime = QMimeData()
+    mime.setUrls([QUrl.fromLocalFile(str(path)) for path in paths])
+    return mime
+
+
+def drop_event(mime: QMimeData) -> QDropEvent:
+    event = QDropEvent(
+        QPointF(10, 10),
+        Qt.DropAction.CopyAction,
+        mime,
+        Qt.MouseButton.LeftButton,
+        Qt.KeyboardModifier.NoModifier,
+    )
+    # QDropEvent keeps a native pointer, not a Python ownership reference.
+    event._test_mime = mime
+    return event
+
+
 def test_window_exposes_accessible_file_workflow(window):
     assert window.minimumWidth() >= 1080
     assert window.drop_zone.accessibleName() == "Document drop zone"
@@ -53,6 +73,7 @@ def test_window_exposes_accessible_file_workflow(window):
         "Text document (.txt)"
     )
     assert ".TXT" in window.drop_zone.drop_hint.text()
+    assert "automatically" in window.drop_zone.format_selector.toolTip()
 
 
 def test_document_panels_show_scrollbars_only_when_needed(window):
@@ -84,6 +105,91 @@ def test_file_type_selector_filters_added_files(window, tmp_path):
 
     assert window.file_tree.topLevelItemCount() == 0
     assert ".PDF" in window.error_banner.text()
+
+
+@pytest.mark.parametrize(
+    "extension",
+    ["txt", "docx", "pdf", "pptx", "xlsx", "csv", "html", "htm", "json", "xml"],
+)
+def test_drop_auto_detects_every_supported_extension(window, tmp_path, extension):
+    source = create_files(tmp_path, f"Laporan café 01.{extension.upper()}")[0]
+    event = drop_event(file_mime(source))
+
+    window.drop_zone.dropEvent(event)
+
+    assert event.isAccepted()
+    assert window.file_tree.topLevelItemCount() == 1
+    assert window.file_tree.topLevelItem(0).text(0) == source.name
+    assert window.drop_zone.selected_extensions() == (f".{extension}",)
+
+
+@pytest.mark.filterwarnings("ignore:Function.*QDrag.*deprecated:DeprecationWarning")
+def test_drag_events_accept_supported_local_file_and_show_feedback(window, tmp_path):
+    source = create_files(tmp_path, "drag me.pdf")[0]
+    mime = file_mime(source)
+    enter = QDragEnterEvent(
+        QPoint(10, 10), Qt.DropAction.CopyAction, mime,
+        Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier,
+    )
+    move = QDragMoveEvent(
+        QPoint(12, 12), Qt.DropAction.CopyAction, mime,
+        Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier,
+    )
+
+    window.drop_zone.dragEnterEvent(enter)
+    window.drop_zone.dragMoveEvent(move)
+
+    assert enter.isAccepted() and move.isAccepted()
+    assert window.drop_zone.property("dragActive") is True
+
+
+@pytest.mark.filterwarnings("ignore:Function.*QDrag.*deprecated:DeprecationWarning")
+def test_drag_rejects_non_url_and_unsupported_payloads(window, tmp_path):
+    unsupported = create_files(tmp_path, "archive.zip")[0]
+    for mime in (QMimeData(), file_mime(unsupported)):
+        event = QDragEnterEvent(
+            QPoint(10, 10), Qt.DropAction.CopyAction, mime,
+            Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier,
+        )
+        window.drop_zone.dragEnterEvent(event)
+        assert not event.isAccepted()
+
+
+def test_drop_accepts_same_type_batch_and_reports_skipped_files(window, tmp_path):
+    first, second, unsupported = create_files(
+        tmp_path, "one file.PDF", "dua_日本語.pdf", "notes.exe"
+    )
+
+    window.drop_zone.dropEvent(drop_event(file_mime(first, second, unsupported)))
+
+    assert window.file_tree.topLevelItemCount() == 2
+    assert window.summary_label.text() == "2 files selected · .PDF batch"
+    assert "1 unsupported or missing file(s) skipped" in window.statusBar().currentMessage()
+
+
+def test_drop_rejects_mixed_supported_formats_without_partial_state(window, tmp_path):
+    pdf, docx = create_files(tmp_path, "one.pdf", "two.docx")
+
+    window.drop_zone.dropEvent(drop_event(file_mime(pdf, docx)))
+
+    assert window.file_tree.topLevelItemCount() == 0
+    assert "different formats" in window.error_banner.text()
+    assert window.drop_zone.selected_extensions() == (".txt",)
+
+
+def test_browse_still_uses_selected_format(window, tmp_path, monkeypatch):
+    source = create_files(tmp_path, "chosen file.pdf")[0]
+    pdf_index = window.drop_zone.format_selector.findText("PDF document (.pdf)")
+    window.drop_zone.format_selector.setCurrentIndex(pdf_index)
+    monkeypatch.setattr(
+        "document_converter.gui.main_window.QFileDialog.getOpenFileNames",
+        lambda *args, **kwargs: ([str(source)], "PDF document (*.pdf)"),
+    )
+
+    window._choose_files()
+
+    assert window.file_tree.topLevelItemCount() == 1
+    assert window.file_tree.topLevelItem(0).text(0) == source.name
 
 
 def test_add_files_accepts_same_extension_case_insensitively(
