@@ -61,6 +61,7 @@ def drop_event(mime: QMimeData) -> QDropEvent:
 
 def test_window_exposes_accessible_file_workflow(window):
     assert window.minimumWidth() >= 1080
+    assert window.acceptDrops()
     assert window.drop_zone.accessibleName() == "Document drop zone"
     assert window.drop_zone.browse_button.text() == "Choose files"
     assert window.convert_button.text() == "Convert files"
@@ -141,6 +142,46 @@ def test_drag_events_accept_supported_local_file_and_show_feedback(window, tmp_p
 
     assert enter.isAccepted() and move.isAccepted()
     assert window.drop_zone.property("dragActive") is True
+
+
+@pytest.mark.filterwarnings("ignore:Function.*QDrag.*deprecated:DeprecationWarning")
+def test_selected_files_panel_accepts_drop_outside_drop_zone(window, tmp_path):
+    source = create_files(tmp_path, "dropped over selected files.PDF")[0]
+    mime = file_mime(source)
+    enter = QDragEnterEvent(
+        QPoint(500, 500), Qt.DropAction.CopyAction, mime,
+        Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier,
+    )
+    dropped = drop_event(mime)
+
+    target = window.file_tree.viewport()
+    assert target.acceptDrops()
+    QApplication.sendEvent(target, enter)
+    QApplication.sendEvent(target, dropped)
+
+    assert enter.isAccepted() and dropped.isAccepted()
+    assert window.file_tree.topLevelItemCount() == 1
+    assert window.file_tree.topLevelItem(0).text(0) == source.name
+    assert window.drop_zone.selected_extensions() == (".pdf",)
+    assert window.drop_zone.property("dragActive") is False
+
+
+@pytest.mark.filterwarnings("ignore:Function.*QDrag.*deprecated:DeprecationWarning")
+def test_selected_files_panel_rejects_unsupported_drop(window, tmp_path):
+    unsupported = create_files(tmp_path, "archive.zip")[0]
+    mime = file_mime(unsupported)
+    enter = QDragEnterEvent(
+        QPoint(500, 500), Qt.DropAction.CopyAction, mime,
+        Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier,
+    )
+    dropped = drop_event(mime)
+
+    target = window.file_tree.viewport()
+    QApplication.sendEvent(target, enter)
+    QApplication.sendEvent(target, dropped)
+
+    assert not enter.isAccepted() and not dropped.isAccepted()
+    assert window.file_tree.topLevelItemCount() == 0
 
 
 @pytest.mark.filterwarnings("ignore:Function.*QDrag.*deprecated:DeprecationWarning")
