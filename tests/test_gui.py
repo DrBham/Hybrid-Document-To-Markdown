@@ -61,7 +61,6 @@ def drop_event(mime: QMimeData) -> QDropEvent:
 
 def test_window_exposes_accessible_file_workflow(window):
     assert window.minimumWidth() >= 1080
-    assert window.acceptDrops()
     assert window.drop_zone.accessibleName() == "Document drop zone"
     assert window.drop_zone.browse_button.text() == "Choose files"
     assert window.convert_button.text() == "Convert files"
@@ -145,8 +144,8 @@ def test_drag_events_accept_supported_local_file_and_show_feedback(window, tmp_p
 
 
 @pytest.mark.filterwarnings("ignore:Function.*QDrag.*deprecated:DeprecationWarning")
-def test_selected_files_panel_accepts_drop_outside_drop_zone(window, tmp_path):
-    source = create_files(tmp_path, "dropped over selected files.PDF")[0]
+def test_add_documents_children_forward_drop_to_drop_zone(window, tmp_path):
+    source = create_files(tmp_path, "dropped over file selector.PDF")[0]
     mime = file_mime(source)
     enter = QDragEnterEvent(
         QPoint(500, 500), Qt.DropAction.CopyAction, mime,
@@ -154,7 +153,7 @@ def test_selected_files_panel_accepts_drop_outside_drop_zone(window, tmp_path):
     )
     dropped = drop_event(mime)
 
-    target = window.file_tree.viewport()
+    target = window.drop_zone.format_selector
     assert target.acceptDrops()
     QApplication.sendEvent(target, enter)
     QApplication.sendEvent(target, dropped)
@@ -167,21 +166,8 @@ def test_selected_files_panel_accepts_drop_outside_drop_zone(window, tmp_path):
 
 
 @pytest.mark.filterwarnings("ignore:Function.*QDrag.*deprecated:DeprecationWarning")
-def test_selected_files_panel_rejects_unsupported_drop(window, tmp_path):
-    unsupported = create_files(tmp_path, "archive.zip")[0]
-    mime = file_mime(unsupported)
-    enter = QDragEnterEvent(
-        QPoint(500, 500), Qt.DropAction.CopyAction, mime,
-        Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier,
-    )
-    dropped = drop_event(mime)
-
-    target = window.file_tree.viewport()
-    QApplication.sendEvent(target, enter)
-    QApplication.sendEvent(target, dropped)
-
-    assert not enter.isAccepted() and not dropped.isAccepted()
-    assert window.file_tree.topLevelItemCount() == 0
+def test_selected_files_panel_is_not_a_drop_target(window):
+    assert not window.file_tree.viewport().acceptDrops()
 
 
 @pytest.mark.filterwarnings("ignore:Function.*QDrag.*deprecated:DeprecationWarning")

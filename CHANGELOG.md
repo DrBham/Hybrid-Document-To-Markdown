@@ -6,8 +6,8 @@
 - Accept drag-enter and drag-move only when at least one existing local file uses a supported extension; decode Windows file URLs through Qt.
 - Keep same-extension batch policy, reject mixed supported formats atomically, skip unsupported files with feedback, and preserve the existing Browse filter workflow.
 - Clarify the GUI helper text: the selector filters Browse while drag-and-drop detects the file type automatically.
-- Follow up on the supplied Windows recording: accept and route supported file drops across the full main window, not only the Add documents frame.
-- Add seventeen Q6 GUI cases covering all ten extensions, uppercase names, spaces, Unicode, multiple files, unsupported payloads, mixed formats, visual drag state, full-window routing, and Browse regression.
+- Follow up on the supplied Windows recording: make the complete Add documents card—including its labels, selector, and button—the sole document drop target.
+- Add seventeen Q6 GUI cases covering all ten extensions, uppercase names, spaces, Unicode, multiple files, unsupported payloads, mixed formats, visual drag state, Add documents child routing, and Browse regression.
 - Validation: 29 focused GUI tests and the complete **222-test** suite pass. Native Explorer automation could not run because the Codex Windows UI helper failed to initialize; a manual recheck is documented.
 
 ## Unreleased — Q5 reliability and evaluation complete (2026-11-11)

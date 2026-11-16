@@ -30,7 +30,7 @@
 ---
 
 > [!IMPORTANT]
-> **Q6 stabilization is in progress: 222 tests pass.** The first Q6 checkpoint fixes drag-and-drop type detection and accepts supported documents across the full application window. It covers all ten extensions, uppercase names, spaces, Unicode, same-type batches, unsupported files, mixed-format rejection, and the Browse fallback. See the [Q6 checkpoint report](docs/Q6_CHECKPOINT_1.md), [Q5 evidence](docs/Q5_ACCEPTANCE.md), and [changelog](CHANGELOG.md). Single-file Base64 remains the default.
+> **Q6 stabilization is in progress: 222 tests pass.** The first Q6 checkpoint fixes drag-and-drop type detection across the complete Add documents card while other panels remain outside the drop target. It covers all ten extensions, uppercase names, spaces, Unicode, same-type batches, unsupported files, mixed-format rejection, and the Browse fallback. See the [Q6 checkpoint report](docs/Q6_CHECKPOINT_1.md), [Q5 evidence](docs/Q5_ACCEPTANCE.md), and [changelog](CHANGELOG.md). Single-file Base64 remains the default.
 
 > [!NOTE]
 > This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
@@ -118,7 +118,7 @@
 <li>Single-file Markdown output with Base64-embedded images</li>
 <li>No OCR runtime, model pack, dataset, or training requirement</li>
 <li>Real DOCX image-to-Base64 integration coverage</li>
-<li>222 passing automated tests, including format fidelity, contextual media, process reliability, and full-window drag-and-drop acceptance</li>
+<li>222 passing automated tests, including format fidelity, contextual media, process reliability, and Add documents drag-and-drop acceptance</li>
 </ul>
 </td>
 <td width="50%" valign="top">
@@ -427,7 +427,7 @@ This design provides:
 
 The test suite focuses on application behavior and third-party integration boundaries. It does not pretend to test MarkItDown's internal algorithms as original project code.
 
-Q1 baseline: **80 → 92 passed**. Current suite: **222 passed**, including fifteen Q3 format cases, sixteen Q4 media cases, 55 added Q5 cases, and seventeen Q6 drag-and-drop cases. Q6 verifies Qt drag-enter/move/drop behavior, full-window routing, and all ten supported extensions while preserving Browse behavior. Passing these fixtures does not establish fidelity for every possible layout or replace a native Windows Explorer acceptance pass. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md), [Q4 acceptance](docs/Q4_ACCEPTANCE.md), [Q5 evidence](docs/Q5_ACCEPTANCE.md), and the [Q6 checkpoint report](docs/Q6_CHECKPOINT_1.md).
+Q1 baseline: **80 → 92 passed**. Current suite: **222 passed**, including fifteen Q3 format cases, sixteen Q4 media cases, 55 added Q5 cases, and seventeen Q6 drag-and-drop cases. Q6 verifies Qt drag-enter/move/drop behavior across the Add documents card and all ten supported extensions while preserving Browse behavior. Passing these fixtures does not establish fidelity for every possible layout or replace a native Windows Explorer acceptance pass. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md), [Q4 acceptance](docs/Q4_ACCEPTANCE.md), [Q5 evidence](docs/Q5_ACCEPTANCE.md), and the [Q6 checkpoint report](docs/Q6_CHECKPOINT_1.md).
 
 Run reproducible synthetic probes with `python tools/audit_conversion_quality.py`. The script prints source/output comparisons and removes its temporary fixtures; it is not an accuracy benchmark. See the [audit](docs/CONVERSION_QUALITY_AUDIT.md) for observed losses and the measurement plan.
 
@@ -550,7 +550,7 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 | Quality Q3 | Format fidelity policies and source-backed acceptance; [scope and limits](docs/Q3_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q4 | Source-context media, deduplication, PDF visual modes and portable ZIP; [scope and limits](docs/Q4_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q5 | 205 tests, ten-format semantic corpus, four stress cases, active cancellation, process deadlines and offline checks; [evidence](docs/Q5_ACCEPTANCE.md) | ✅ Completed |
-| Quality Q6 — Fixing, testing, and stabilization | Drag-and-drop type detection and full-window routing fixed and covered by automated Qt events; native Explorer recheck remains. Next: shared output policies, PDF/all-format fidelity, regression expansion, and evidence-based quality scores; [checkpoint report](docs/Q6_CHECKPOINT_1.md) | 🚧 WIP |
+| Quality Q6 — Fixing, testing, and stabilization | Drag-and-drop type detection across the Add documents card is covered by automated Qt events; native Explorer recheck remains. Next: shared output policies, PDF/all-format fidelity, regression expansion, and evidence-based quality scores; [checkpoint report](docs/Q6_CHECKPOINT_1.md) | 🚧 WIP |
 | Quality Q7 — Installer and release | Build the Windows installer, verify clean installation and uninstall/update behavior, audit bundled dependencies and licenses, test the packaged worker, document distribution, and prepare the GitHub release | Planned after Q6 quality gates |
 
 ### Phase E result

@@ -142,6 +142,30 @@ class DropZone(QFrame):
         layout.addLayout(selector_row)
         layout.addWidget(self.drop_hint)
 
+        # Native Explorer events are delivered to the child below the cursor
+        # (label, selector, or button), not necessarily to this QFrame.  Make
+        # every surface inside Add documents forward those events here while
+        # keeping the rest of the application outside the drop target.
+        for widget in self.findChildren(QWidget):
+            widget.setAcceptDrops(True)
+            widget.installEventFilter(self)
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        event_type = event.type()
+        if event_type == QEvent.Type.DragEnter:
+            self.dragEnterEvent(event)
+            return True
+        if event_type == QEvent.Type.DragMove:
+            self.dragMoveEvent(event)
+            return True
+        if event_type == QEvent.Type.DragLeave:
+            self.dragLeaveEvent(event)
+            return True
+        if event_type == QEvent.Type.Drop:
+            self.dropEvent(event)
+            return True
+        return super().eventFilter(watched, event)
+
     @Slot()
     def _update_drop_hint(self) -> None:
         extensions = " / ".join(
@@ -265,12 +289,6 @@ class MainWindow(QMainWindow):
         exporter: MarkdownExporter | None = None,
     ):
         super().__init__()
-        # Explorer may deliver the native drag event to any child under the
-        # cursor (the file list, preview, selector, and so on).  Accepting
-        # drops only on DropZone therefore makes most of the window look like
-        # an invalid target.  Keep DropZone's focused behaviour, while making
-        # the complete application surface a reliable drop target as well.
-        self.setAcceptDrops(True)
         self._batch_converter = (
             batch_converter if batch_converter is not None else BatchConverter()
         )
@@ -289,70 +307,9 @@ class MainWindow(QMainWindow):
         load_theme_fonts()
         self.setStyleSheet(APP_STYLESHEET)
         self._build_ui()
-        self._configure_document_drop_targets()
         self._configure_interaction_cursors()
         self._connect_signals()
         self._update_actions()
-
-    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
-        """Accept supported Explorer files anywhere in the main window."""
-        if DropZone._has_supported_local_file(event.mimeData()):
-            event.acceptProposedAction()
-            self.drop_zone._set_drag_active(True)
-        else:
-            event.ignore()
-
-    def dragMoveEvent(self, event: QDragMoveEvent) -> None:
-        if DropZone._has_supported_local_file(event.mimeData()):
-            event.acceptProposedAction()
-            self.drop_zone._set_drag_active(True)
-        else:
-            event.ignore()
-
-    def dragLeaveEvent(self, event) -> None:
-        self.drop_zone._set_drag_active(False)
-        super().dragLeaveEvent(event)
-
-    def dropEvent(self, event: QDropEvent) -> None:
-        """Route a window-level drop through the normal validation flow."""
-        self.drop_zone._set_drag_active(False)
-        paths = DropZone._local_paths(event.mimeData())
-        if DropZone._has_supported_local_file(event.mimeData()):
-            self._add_dropped_files(paths)
-            event.acceptProposedAction()
-        else:
-            event.ignore()
-
-    def _configure_document_drop_targets(self) -> None:
-        """Make every visible child surface participate in file drops.
-
-        Qt sends a native Explorer drag to the child below the pointer.  An
-        event filter is therefore required for panels such as the file-tree
-        viewport; a handler on QMainWindow alone does not exercise that route.
-        """
-        root = self.centralWidget()
-        if root is None:
-            return
-        for widget in (root, *root.findChildren(QWidget)):
-            widget.setAcceptDrops(True)
-            widget.installEventFilter(self)
-
-    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        """Route native drag events from child widgets to the window flow."""
-        event_type = event.type()
-        if event_type == QEvent.Type.DragEnter:
-            self.dragEnterEvent(event)
-            return True
-        if event_type == QEvent.Type.DragMove:
-            self.dragMoveEvent(event)
-            return True
-        if event_type == QEvent.Type.DragLeave:
-            self.dragLeaveEvent(event)
-            return True
-        if event_type == QEvent.Type.Drop:
-            self.dropEvent(event)
-            return True
-        return super().eventFilter(watched, event)
 
     def _build_ui(self) -> None:
         root = QWidget()

@@ -8,7 +8,7 @@ Restore dependable drag-and-drop without changing the same-extension batch model
 
 ## 2. Root cause
 
-The first defect was filter routing: `DropZone.dropEvent()` emitted valid local paths into the same selector-filtered path used by Browse, so a PDF dropped while the selector was `.txt` was rejected. The supplied recording then exposed a second defect: only the `DropZone` frame accepted native drops. Windows therefore displayed the forbidden cursor when the file crossed the selected-files panel and other child widgets. Changing the selector to PDF could not solve that target-coverage problem.
+The first defect was filter routing: `DropZone.dropEvent()` emitted valid local paths into the same selector-filtered path used by Browse, so a PDF dropped while the selector was `.txt` was rejected. The supplied recording then exposed a second defect: controls inside the Add documents frame could receive the native event instead of their parent. The solution makes every child surface in that card forward drag events to `DropZone`; panels outside it intentionally remain non-drop targets.
 
 Affected code: `src/document_converter/gui/main_window.py`, especially `DropZone` and `MainWindow.add_files()`. Severity: P0 because the primary direct-manipulation workflow appeared nonfunctional. Regression risk: batch type selection and Browse filtering.
 
@@ -19,7 +19,7 @@ Affected code: `src/document_converter/gui/main_window.py`, especially `DropZone
 - A new dropped-file route detects the single supported extension, updates the selector, then reuses the established `add_files()` validation and list updates.
 - Same-type multiple files are accepted. Mixed supported formats are rejected before any list state changes. Unsupported or missing entries are skipped and reported when a valid same-type batch remains.
 - Drag enter and drag move provide acceptance feedback only for supported local files. Drop never starts conversion automatically.
-- `MainWindow` is also a drop target and routes supported files from the selected-files panel, preview, or other application surfaces through the same validation flow.
+- Labels, selector, and button inside Add documents forward native drag events to `DropZone`; the rest of the window remains outside the target.
 - GUI help and accessibility text explain that the selector filters Browse while Drop detects type automatically.
 
 No dependency, converter behavior, document output, or export policy changed.
@@ -29,7 +29,7 @@ No dependency, converter behavior, document output, or export policy changed.
 | File | Change |
 |---|---|
 | `src/document_converter/gui/main_window.py` | URL parsing, drag-enter/move/drop validation, automatic dropped-type selection, mixed-format handling, and help text |
-| `tests/test_gui.py` | Seventeen Q6 cases, including ten extension parameters, full-window routing, and Browse regression |
+| `tests/test_gui.py` | Seventeen Q6 cases, including ten extension parameters, Add documents child routing, and Browse regression |
 | `README.md`, `CHANGELOG.md`, quality reports | Q6 status, evidence, limitations, and next checkpoint |
 
 ## 5. Tests performed
@@ -42,7 +42,7 @@ No dependency, converter behavior, document output, or export policy changed.
 # 222 passed in 32.82s
 ```
 
-The automated matrix covers TXT, DOCX, PDF, PPTX, XLSX, CSV, HTML, HTM, JSON, and XML; uppercase extensions; spaces; Unicode filenames; multiple same-type files; unsupported URLs; non-URL payloads; mixed supported formats; visual drag state; full-window routing; and the Browse path.
+The automated matrix covers TXT, DOCX, PDF, PPTX, XLSX, CSV, HTML, HTM, JSON, and XML; uppercase extensions; spaces; Unicode filenames; multiple same-type files; unsupported URLs; non-URL payloads; mixed supported formats; visual drag state; Add documents child routing; and the Browse path.
 
 ## 6. Before / after evidence
 
@@ -53,7 +53,8 @@ The automated matrix covers TXT, DOCX, PDF, PPTX, XLSX, CSV, HTML, HTM, JSON, an
 | Drop mixed PDF and DOCX | Filter-dependent partial interpretation | Entire drop rejected with a one-format-per-batch message |
 | Drop unsupported-only payload | Drag looked acceptable until drop | Drag enter is rejected; drop route also reports supported formats |
 | Browse PDF with PDF filter | Existing behavior | Still adds the selected PDF |
-| Drag over selected-files or another panel | Windows shows a forbidden cursor | Main window accepts and routes the file through the normal drop validation |
+| Drag over selector/button inside Add documents | Child control could show a forbidden cursor | Child forwards the file to the normal DropZone validation |
+| Drag over selected-files or preview | Not an intended input surface | Remains outside the document drop target |
 
 ## 7. Regression status
 
@@ -68,7 +69,7 @@ The automated P0 functional gate passes for all ten supported extensions. This i
 The supplied recording was reviewed frame by frame and is valid failure evidence for the earlier build. The Windows computer-use helper could not launch the application in this Codex session because it failed twice with `registered Core setup is not complete for the installed app`. Automated Qt events now cover the newly identified full-window route, but the corrected build should still be rechecked with a real Explorer gesture:
 
 1. Start the application with the selector at TXT.
-2. Drag one PDF from Windows Explorer first onto the selected-files panel, then onto the Add documents panel.
+2. Drag one PDF from Windows Explorer onto several points inside Add documents: its empty area, text, selector, and button.
 3. Confirm the selector changes to PDF, the filename appears once, status is Pending, and conversion does not start automatically.
 4. Repeat with DOCX, PPTX, XLSX, CSV, TXT, JSON, XML, HTML, and HTM, including uppercase, spaces, and Unicode names.
 5. Drop two files of the same type and confirm both appear.
