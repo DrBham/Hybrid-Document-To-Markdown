@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — Q6 PDF P1 user-facing output profile (2026-11-19)
+
+- Make GUI PDF conversion embed source image objects instead of full-page screenshots.
+- Omit diagnostic geometry appendices from GUI exports while retaining readable tables and Base64 image data.
+- Keep the API fidelity profile unchanged; callers can still request rendered pages and embedded source metadata.
+
 ## Unreleased — Q6 PDF P0 quality fixes (2026-11-19)
 
 - Repair structured values split by visual line wrapping inside PDF table cells, including numeric fragments and punctuation-delimited JSON fields.

@@ -94,6 +94,13 @@ def test_embedded_media_is_automatic_and_model_free(window):
     assert "no ai model" in helper
 
 
+def test_gui_uses_compact_user_facing_pdf_profile(window):
+    options = window._batch_converter._process.options
+
+    assert options.pdf_mode == "images"
+    assert options.metadata_mode == "omit"
+
+
 def test_file_type_selector_filters_added_files(window, tmp_path):
     pdf_index = window.drop_zone.format_selector.findText(
         "PDF document (.pdf)"

@@ -51,6 +51,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.models import BatchConversionResult, FileConversionOutcome
+from ..core.options import ConversionOptions
 from ..core.validator import SUPPORTED_FORMATS
 from ..services.batch_converter import BatchConverter
 from ..services.markdown_exporter import MarkdownExporter
@@ -290,7 +291,14 @@ class MainWindow(QMainWindow):
     ):
         super().__init__()
         self._batch_converter = (
-            batch_converter if batch_converter is not None else BatchConverter()
+            batch_converter
+            if batch_converter is not None
+            else BatchConverter(
+                options=ConversionOptions(
+                    pdf_mode="images",
+                    metadata_mode="omit",
+                )
+            )
         )
         self._exporter = exporter if exporter is not None else MarkdownExporter()
         self._files: list[Path] = []
