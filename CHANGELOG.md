@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Q6 PDF P0 quality fixes (2026-11-19)
+
+- Repair structured values split by visual line wrapping inside PDF table cells, including numeric fragments and punctuation-delimited JSON fields.
+- Join compatible table segments that continue across adjacent PDF pages while keeping repeated-header tables separate.
+- Preserve original extracted rows in embedded geometry metadata whenever a repair changes visible cell text.
+- Add regressions for token repair, cross-page row continuation, repeated headers, and existing merged/multiline table behavior.
+
 ## Unreleased — Q6-B shared output policy and all-format audit (2026-11-17)
 
 - Add a router-level output contract for source identity, format identity, UTF-8 safety, NUL rejection, unresolved-placeholder rejection, warning canonicalization, and final output limits.
