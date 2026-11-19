@@ -23,6 +23,7 @@ class ExtractedImage:
     path: Path
     context: str
     page: int | None = None
+    bbox: tuple[float, float, float, float] | None = None
 
 
 class DocumentImageExtractor:
@@ -159,7 +160,20 @@ class DocumentImageExtractor:
                                 total_bytes += image_path.stat().st_size
                                 if total_bytes > self.options.max_uncompressed_bytes:
                                     raise ValueError("PDF images exceed media budget")
-                                extracted.append(ExtractedImage(image_path, f"PDF page {page_index + 1}, image {index}", page_index + 1))
+                                left, bottom, right, top = obj.get_bounds()
+                                page_height = page.get_size()[1]
+                                bbox = (
+                                    left,
+                                    page_height - top,
+                                    right,
+                                    page_height - bottom,
+                                )
+                                extracted.append(ExtractedImage(
+                                    image_path,
+                                    f"PDF page {page_index + 1}, image {index}",
+                                    page_index + 1,
+                                    bbox,
+                                ))
                         continue
                     import math
                     width, height = page.get_size()

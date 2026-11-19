@@ -16,6 +16,8 @@ class InlineImage:
 class PageMediaSlot:
     token: str
     page: int
+    bbox: tuple[float, float, float, float] | None = None
+    html: bool = False
 
 
 @dataclass

@@ -15,7 +15,7 @@ from pptx.util import Inches
 
 from document_converter.core.options import ConversionOptions
 from document_converter.core.router import ConverterRouter
-from document_converter.core.models import ConversionResult, InlineImage
+from document_converter.core.models import ConversionResult, InlineImage, PageMediaSlot
 from document_converter.embedded_media.converter import EmbeddedMediaDocumentConverter
 from document_converter.services.asset_package import AssetPackageExporter
 
@@ -227,6 +227,44 @@ def test_missing_position_falls_back_without_losing_image(tmp_path):
     assert result.markdown.startswith("Retained text")
     assert base64.b64encode(b"payload").decode() in result.markdown
     assert any("position" in warning for warning in result.warnings)
+
+
+def test_unmatched_pdf_bbox_falls_back_without_losing_image(tmp_path):
+    image = picture(tmp_path)
+
+    class Base:
+        def convert(self, source):
+            return ConversionResult(
+                source,
+                "pdf",
+                "## Page 1\n\nTOKEN",
+                page_media_slots=(PageMediaSlot(
+                    "TOKEN",
+                    1,
+                    (10.0, 10.0, 20.0, 20.0),
+                ),),
+            )
+
+    class Extractor:
+        def extract(self, source, directory):
+            from document_converter.embedded_media.extractor import ExtractedImage
+
+            return (ExtractedImage(
+                image,
+                "PDF page 1, image 1",
+                1,
+                (100.0, 100.0, 120.0, 120.0),
+            ),)
+
+    result = EmbeddedMediaDocumentConverter(
+        Base(),
+        Extractor(),
+        options=ConversionOptions(pdf_mode="images"),
+    ).convert(tmp_path / "fake.pdf")
+
+    assert "TOKEN" not in result.markdown
+    assert base64.b64encode(image.read_bytes()).decode() in result.markdown
+    assert any("marker unavailable" in warning for warning in result.warnings)
 
 
 def test_package_rejects_malformed_base64_before_overwrite(tmp_path):

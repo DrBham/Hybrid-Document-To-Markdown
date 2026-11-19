@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Q6 P2–P4 complete (2026-11-20)
+
+- Map extracted PDF raster images to source table cells with generic page-space bounding boxes; preserve unmatched images in the appendix with a warning.
+- Remove empty PDF page headings created when table continuations merge into an earlier logical table.
+- Keep prior PDF structured-value and cross-page table repairs intact without document-specific filenames or content rules.
+- Pass 247 automated tests plus 42 fresh-process corpus runs and 303/303 checks across ten formats and four stress cases.
+- Record the Q6 go decision, benchmark evidence, remaining limits, and Q7 installer handoff.
+
 ## Unreleased — Q6 PDF P1 user-facing output profile (2026-11-19)
 
 - Make GUI PDF conversion embed source image objects instead of full-page screenshots.

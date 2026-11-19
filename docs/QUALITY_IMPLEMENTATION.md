@@ -10,7 +10,9 @@ Q5 closure (2026-11-11): **205 tests passed in 40.50s**. Ten-format semantic gol
 
 Q6 checkpoint 1 (2026-11-17): drag-and-drop type detection and Add documents routing are covered by seventeen cases. See [Q6_CHECKPOINT_1.md](Q6_CHECKPOINT_1.md).
 
-Q6 checkpoint 2 (2026-11-17): **242 tests passed in 33.46s**. All ten formats now pass one shared public-output contract; structured fidelity appendices have explicit metadata boundaries and an opt-out mode. The unchanged corpus passes **101/101 checks** across ten formats and four stress cases. See [Q6_CHECKPOINT_2.md](Q6_CHECKPOINT_2.md). Q6-C final audit remains; installer work is Q7.
+Q6 checkpoint 2 (2026-11-17): **242 tests passed in 33.46s**. All ten formats now pass one shared public-output contract; structured fidelity appendices have explicit metadata boundaries and an opt-out mode. The unchanged corpus passes **101/101 checks** across ten formats and four stress cases. See [Q6_CHECKPOINT_2.md](Q6_CHECKPOINT_2.md).
+
+Q6 final gate (2026-11-20): **247 tests pass**. PDF raster images use generic bounding-box matching to stay inside their source table cells, unmatched media falls back without data loss, and empty continuation headings are omitted. The unchanged corpus passes **303/303 checks in 42 fresh-process runs**. See [Q6_FINAL_AUDIT.md](Q6_FINAL_AUDIT.md). Q7 installer and release work is now WIP.
 
 ## Delivered checkpoints
 
@@ -109,4 +111,4 @@ Each corpus result records its actual checks, source/output size, timing, warnin
 - Exported relative hyperlinks can require external companion documents. ZIP export repackages supported Base64 image references only; it does not crawl links or fetch network resources.
 - Profiles are deferred until these source fidelity contracts stabilize. No additional parser dependency was introduced.
 
-Next checkpoint: Q6-C final repository/workflow audit and go/no-go decision. Q7 owns clean installation, installer, and release packaging after Q6 gates pass.
+Q6 is complete within the documented scope. Next checkpoint: Q7 clean installation, installer, bundled-license inventory, and release packaging.

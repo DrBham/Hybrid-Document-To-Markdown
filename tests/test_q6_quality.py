@@ -1,6 +1,7 @@
 """Q6-B shared output contracts and ten-format quality gates."""
 
 from pathlib import Path
+import zlib
 
 import pytest
 
@@ -143,6 +144,48 @@ def _pdf_table_lines(horizontal):
     return commands
 
 
+def _make_pdf_with_table_image(path):
+    pixels = zlib.compress(bytes((255, 0, 0) * 4))
+    commands = "\n".join(_pdf_table_lines((760, 500, 40)) + [
+        _pdf_text(50, 720, "Label"),
+        _pdf_text(50, 450, "Footer"),
+        "q 200 0 0 120 320 550 cm /Im1 Do Q",
+    ]).encode("ascii")
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [5 0 R] /Count 1 >>",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        (
+            b"<< /Type /XObject /Subtype /Image /Width 2 /Height 2 "
+            b"/ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode "
+            b"/Length " + str(len(pixels)).encode() + b" >>\nstream\n"
+            + pixels + b"\nendstream"
+        ),
+        (
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 600 800] "
+            b"/Resources << /Font << /F1 3 0 R >> /XObject << /Im1 4 0 R >> >> "
+            b"/Contents 6 0 R >>"
+        ),
+        (
+            b"<< /Length " + str(len(commands)).encode() + b" >>\nstream\n"
+            + commands + b"\nendstream"
+        ),
+    ]
+    content, offsets = bytearray(b"%PDF-1.4\n"), []
+    for index, obj in enumerate(objects, 1):
+        offsets.append(len(content))
+        content.extend(f"{index} 0 obj\n".encode() + obj + b"\nendobj\n")
+    xref = len(content)
+    content.extend(f"xref\n0 {len(objects) + 1}\n0000000000 65535 f \n".encode())
+    for offset in offsets:
+        content.extend(f"{offset:010d} 00000 n \n".encode())
+    content.extend(
+        f"trailer << /Size {len(objects) + 1} /Root 1 0 R >>\n"
+        f"startxref\n{xref}\n%%EOF".encode()
+    )
+    path.write_bytes(content)
+
+
 def test_pdf_repairs_structured_wraps_and_stitches_continued_table(tmp_path):
     source = tmp_path / "continued-table.pdf"
     first_page = _pdf_table_lines((760, 700, 100, 40)) + [
@@ -174,6 +217,7 @@ def test_pdf_repairs_structured_wraps_and_stitches_continued_table(tmp_path):
     assert "38<br>," not in result.markdown
     assert "Partisi total / pemilih ganda" in result.markdown
     assert "Next field" in result.markdown
+    assert "## Page 2" not in result.markdown
     assert any("structured token" in warning for warning in result.warnings)
     assert any("table continuations" in warning for warning in result.warnings)
 
@@ -195,3 +239,21 @@ def test_pdf_repeated_header_starts_a_new_table(tmp_path):
 
     assert result.markdown.count("<table>") == 2
     assert not any("table continuations" in warning for warning in result.warnings)
+
+
+def test_pdf_image_is_mapped_into_its_table_cell(tmp_path):
+    source = tmp_path / "table-image.pdf"
+    _make_pdf_with_table_image(source)
+
+    result = ConverterRouter(options=ConversionOptions(
+        pdf_mode="images",
+        metadata_mode="omit",
+    )).convert(source)
+
+    table_start = result.markdown.index("<table>")
+    image = result.markdown.index('<img alt="PDF page 1, image 1"')
+    table_end = result.markdown.index("</table>")
+    assert table_start < image < table_end
+    assert "data:image/png;base64," in result.markdown
+    assert "HYBRIDPAGE" not in result.markdown
+    assert not any("marker unavailable" in warning for warning in result.warnings)

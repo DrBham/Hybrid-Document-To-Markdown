@@ -150,7 +150,7 @@ class EmbeddedMediaDocumentConverter(BaseConverter):
 
         with TemporaryDirectory(prefix="hybrid-document-media-") as temporary:
             images = self._extractor.extract(file_path, Path(temporary))
-            page_images = {}
+            positioned_images = []
             for image in images:
                 data = image.path.read_bytes()
                 digest = hashlib.sha256(data).hexdigest()
@@ -161,16 +161,48 @@ class EmbeddedMediaDocumentConverter(BaseConverter):
                 if file_path.suffix.lower() == ".xlsx" and self.options.sheets and image.page is None:
                     continue
                 mime = MIME_TYPES.get(image.path.suffix.lower(), "application/octet-stream")
-                rendered = render(data, mime, image.context)
                 if image.page is not None and self.options.media_placement == "context":
-                    page_images.setdefault(image.page, []).append(rendered)
+                    positioned_images.append((image, data, mime))
                 else:
+                    rendered = render(data, mime, image.context)
                     appendix.append(rendered)
                     if self.options.media_placement == "context":
                         warnings.append("Additional source media has no verified inline position; preserved in appendix.")
+
+            used_positions = set()
             for slot in result.page_media_slots:
-                markdown = markdown.replace(slot.token, "\n\n".join(page_images.pop(slot.page, [])))
-            for remaining in page_images.values():
+                candidates = [
+                    (index, image, data, mime)
+                    for index, (image, data, mime) in enumerate(positioned_images)
+                    if index not in used_positions and image.page == slot.page
+                ]
+                if slot.bbox is not None:
+                    candidates = [
+                        candidate for candidate in candidates
+                        if candidate[1].bbox is not None
+                        and max(abs(left - right) for left, right in zip(
+                            candidate[1].bbox,
+                            slot.bbox,
+                        )) <= 2.0
+                    ]
+                    candidates = candidates[:1]
+                rendered = []
+                for index, image, data, mime in candidates:
+                    used_positions.add(index)
+                    rendered.append(render(
+                        data,
+                        mime,
+                        image.context,
+                        as_html=slot.html,
+                    ))
+                markdown = markdown.replace(slot.token, "\n\n".join(rendered))
+
+            remaining = [
+                render(data, mime, image.context)
+                for index, (image, data, mime) in enumerate(positioned_images)
+                if index not in used_positions
+            ]
+            if remaining:
                 appendix.extend(remaining)
                 warnings.append("PDF image page marker unavailable; preserved in appendix.")
 

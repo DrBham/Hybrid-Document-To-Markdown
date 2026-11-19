@@ -1,0 +1,901 @@
+{
+  "python": "3.13.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "method": "Independent generated sources; checked-in semantic goldens; fresh process per case/run. Timing excludes fixture generation, includes router/import/conversion. Peak includes generation, conversion and asset validation. Python socket guard is not an OS sandbox. No general accuracy percentage.",
+  "passed": true,
+  "results": [
+    {
+      "case": "txt",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.012727,
+      "input_bytes": 70,
+      "output_bytes": 70,
+      "process_peak_bytes": 24207360,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "txt",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.012901,
+      "input_bytes": 70,
+      "output_bytes": 70,
+      "process_peak_bytes": 24408064,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 2
+    },
+    {
+      "case": "txt",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.01117,
+      "input_bytes": 70,
+      "output_bytes": 70,
+      "process_peak_bytes": 24244224,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 3
+    },
+    {
+      "case": "csv",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.011964,
+      "input_bytes": 45,
+      "output_bytes": 155,
+      "process_peak_bytes": 24309760,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "csv",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.010977,
+      "input_bytes": 45,
+      "output_bytes": 155,
+      "process_peak_bytes": 24449024,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 2
+    },
+    {
+      "case": "csv",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.011664,
+      "input_bytes": 45,
+      "output_bytes": 155,
+      "process_peak_bytes": 24481792,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 3
+    },
+    {
+      "case": "json",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.010755,
+      "input_bytes": 77,
+      "output_bytes": 90,
+      "process_peak_bytes": 24223744,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "json",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.012486,
+      "input_bytes": 77,
+      "output_bytes": 90,
+      "process_peak_bytes": 24338432,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 2
+    },
+    {
+      "case": "json",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.013543,
+      "input_bytes": 77,
+      "output_bytes": 90,
+      "process_peak_bytes": 24367104,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 3
+    },
+    {
+      "case": "xml",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.01157,
+      "input_bytes": 138,
+      "output_bytes": 150,
+      "process_peak_bytes": 24330240,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "xml",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.009382,
+      "input_bytes": 138,
+      "output_bytes": 150,
+      "process_peak_bytes": 24227840,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 2
+    },
+    {
+      "case": "xml",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.011278,
+      "input_bytes": 138,
+      "output_bytes": 150,
+      "process_peak_bytes": 24203264,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 3
+    },
+    {
+      "case": "html",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "forbidden_fragment_0": true,
+        "forbidden_fragment_1": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.122685,
+      "input_bytes": 312,
+      "output_bytes": 348,
+      "process_peak_bytes": 128450560,
+      "warning_count": 3,
+      "blocked_local_bind_probes": 1,
+      "run": 1
+    },
+    {
+      "case": "html",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "forbidden_fragment_0": true,
+        "forbidden_fragment_1": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.088294,
+      "input_bytes": 312,
+      "output_bytes": 348,
+      "process_peak_bytes": 128540672,
+      "warning_count": 3,
+      "blocked_local_bind_probes": 1,
+      "run": 2
+    },
+    {
+      "case": "html",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "forbidden_fragment_0": true,
+        "forbidden_fragment_1": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.114728,
+      "input_bytes": 312,
+      "output_bytes": 348,
+      "process_peak_bytes": 128569344,
+      "warning_count": 3,
+      "blocked_local_bind_probes": 1,
+      "run": 3
+    },
+    {
+      "case": "htm",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.062049,
+      "input_bytes": 179,
+      "output_bytes": 231,
+      "process_peak_bytes": 128352256,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 1,
+      "run": 1
+    },
+    {
+      "case": "htm",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.087899,
+      "input_bytes": 179,
+      "output_bytes": 231,
+      "process_peak_bytes": 128286720,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 1,
+      "run": 2
+    },
+    {
+      "case": "htm",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.11164,
+      "input_bytes": 179,
+      "output_bytes": 231,
+      "process_peak_bytes": 128581632,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 1,
+      "run": 3
+    },
+    {
+      "case": "docx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.261747,
+      "input_bytes": 37334,
+      "output_bytes": 613,
+      "process_peak_bytes": 148164608,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 1,
+      "run": 1
+    },
+    {
+      "case": "docx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.256021,
+      "input_bytes": 37334,
+      "output_bytes": 613,
+      "process_peak_bytes": 148238336,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 1,
+      "run": 2
+    },
+    {
+      "case": "docx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.21416,
+      "input_bytes": 37334,
+      "output_bytes": 613,
+      "process_peak_bytes": 146755584,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 1,
+      "run": 3
+    },
+    {
+      "case": "pptx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.968261,
+      "input_bytes": 34320,
+      "output_bytes": 1926,
+      "process_peak_bytes": 130891776,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 1,
+      "run": 1
+    },
+    {
+      "case": "pptx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.036079,
+      "input_bytes": 34320,
+      "output_bytes": 1926,
+      "process_peak_bytes": 132337664,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 1,
+      "run": 2
+    },
+    {
+      "case": "pptx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 1.016735,
+      "input_bytes": 34320,
+      "output_bytes": 1926,
+      "process_peak_bytes": 132366336,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 1,
+      "run": 3
+    },
+    {
+      "case": "xlsx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.05657,
+      "input_bytes": 6704,
+      "output_bytes": 2676,
+      "process_peak_bytes": 47210496,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "xlsx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.043681,
+      "input_bytes": 6704,
+      "output_bytes": 2676,
+      "process_peak_bytes": 47185920,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 0,
+      "run": 2
+    },
+    {
+      "case": "xlsx",
+      "checks": {
+        "source_fragment_0": true,
+        "source_fragment_1": true,
+        "source_fragment_2": true,
+        "source_fragment_3": true,
+        "source_fragment_4": true,
+        "source_order": true,
+        "original_image_bytes": true,
+        "portable_asset_references": true,
+        "packaged_image_bytes": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.049964,
+      "input_bytes": 6704,
+      "output_bytes": 2676,
+      "process_peak_bytes": 47407104,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 0,
+      "run": 3
+    },
+    {
+      "case": "pdf",
+      "checks": {
+        "source_fragment_0": true,
+        "source_order": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.210236,
+      "input_bytes": 717,
+      "output_bytes": 61,
+      "process_peak_bytes": 45056000,
+      "warning_count": 2,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "pdf",
+      "checks": {
+        "source_fragment_0": true,
+        "source_order": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.205646,
+      "input_bytes": 717,
+      "output_bytes": 61,
+      "process_peak_bytes": 45060096,
+      "warning_count": 2,
+      "blocked_local_bind_probes": 0,
+      "run": 2
+    },
+    {
+      "case": "pdf",
+      "checks": {
+        "source_fragment_0": true,
+        "source_order": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.203333,
+      "input_bytes": 717,
+      "output_bytes": 61,
+      "process_peak_bytes": 45228032,
+      "warning_count": 2,
+      "blocked_local_bind_probes": 0,
+      "run": 3
+    },
+    {
+      "case": "stress-txt",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.035126,
+      "input_bytes": 2700004,
+      "output_bytes": 2700004,
+      "process_peak_bytes": 34947072,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "stress-txt",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.034578,
+      "input_bytes": 2700004,
+      "output_bytes": 2700004,
+      "process_peak_bytes": 35049472,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 2
+    },
+    {
+      "case": "stress-txt",
+      "checks": {
+        "exact_decoded_text": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.039455,
+      "input_bytes": 2700004,
+      "output_bytes": 2700004,
+      "process_peak_bytes": 34807808,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 3
+    },
+    {
+      "case": "stress-csv",
+      "checks": {
+        "table_rows": true,
+        "raw_csv": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.090957,
+      "input_bytes": 360014,
+      "output_bytes": 880085,
+      "process_peak_bytes": 34529280,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "stress-csv",
+      "checks": {
+        "table_rows": true,
+        "raw_csv": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.08394,
+      "input_bytes": 360014,
+      "output_bytes": 880085,
+      "process_peak_bytes": 34623488,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 2
+    },
+    {
+      "case": "stress-csv",
+      "checks": {
+        "table_rows": true,
+        "raw_csv": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.168729,
+      "input_bytes": 360014,
+      "output_bytes": 880085,
+      "process_peak_bytes": 34627584,
+      "warning_count": 0,
+      "blocked_local_bind_probes": 0,
+      "run": 3
+    },
+    {
+      "case": "stress-xlsx",
+      "checks": {
+        "table_rows": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.444825,
+      "input_bytes": 59200,
+      "output_bytes": 3147568,
+      "process_peak_bytes": 87715840,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "stress-xlsx",
+      "checks": {
+        "table_rows": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.453366,
+      "input_bytes": 59200,
+      "output_bytes": 3147568,
+      "process_peak_bytes": 86872064,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 0,
+      "run": 2
+    },
+    {
+      "case": "stress-xlsx",
+      "checks": {
+        "table_rows": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.469498,
+      "input_bytes": 59201,
+      "output_bytes": 3147568,
+      "process_peak_bytes": 81760256,
+      "warning_count": 1,
+      "blocked_local_bind_probes": 0,
+      "run": 3
+    },
+    {
+      "case": "stress-pdf",
+      "checks": {
+        "source_order": true,
+        "page_count": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.237338,
+      "input_bytes": 8263,
+      "output_bytes": 649,
+      "process_peak_bytes": 46149632,
+      "warning_count": 2,
+      "blocked_local_bind_probes": 0,
+      "run": 1
+    },
+    {
+      "case": "stress-pdf",
+      "checks": {
+        "source_order": true,
+        "page_count": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.246051,
+      "input_bytes": 8263,
+      "output_bytes": 649,
+      "process_peak_bytes": 46067712,
+      "warning_count": 2,
+      "blocked_local_bind_probes": 0,
+      "run": 2
+    },
+    {
+      "case": "stress-pdf",
+      "checks": {
+        "source_order": true,
+        "page_count": true,
+        "no_internal_placeholders": true,
+        "no_outbound_python_network_attempts": true,
+        "child_exit_success": true
+      },
+      "seconds": 0.235704,
+      "input_bytes": 8263,
+      "output_bytes": 649,
+      "process_peak_bytes": 46215168,
+      "warning_count": 2,
+      "blocked_local_bind_probes": 0,
+      "run": 3
+    }
+  ],
+  "summary": [
+    {
+      "case": "txt",
+      "runs": 3,
+      "median_seconds": 0.012727,
+      "max_peak_bytes": 24408064
+    },
+    {
+      "case": "csv",
+      "runs": 3,
+      "median_seconds": 0.011664,
+      "max_peak_bytes": 24481792
+    },
+    {
+      "case": "json",
+      "runs": 3,
+      "median_seconds": 0.012486,
+      "max_peak_bytes": 24367104
+    },
+    {
+      "case": "xml",
+      "runs": 3,
+      "median_seconds": 0.011278,
+      "max_peak_bytes": 24330240
+    },
+    {
+      "case": "html",
+      "runs": 3,
+      "median_seconds": 1.114728,
+      "max_peak_bytes": 128569344
+    },
+    {
+      "case": "htm",
+      "runs": 3,
+      "median_seconds": 1.087899,
+      "max_peak_bytes": 128581632
+    },
+    {
+      "case": "docx",
+      "runs": 3,
+      "median_seconds": 1.256021,
+      "max_peak_bytes": 148238336
+    },
+    {
+      "case": "pptx",
+      "runs": 3,
+      "median_seconds": 1.016735,
+      "max_peak_bytes": 132366336
+    },
+    {
+      "case": "xlsx",
+      "runs": 3,
+      "median_seconds": 0.049964,
+      "max_peak_bytes": 47407104
+    },
+    {
+      "case": "pdf",
+      "runs": 3,
+      "median_seconds": 0.205646,
+      "max_peak_bytes": 45228032
+    },
+    {
+      "case": "stress-txt",
+      "runs": 3,
+      "median_seconds": 0.035126,
+      "max_peak_bytes": 35049472
+    },
+    {
+      "case": "stress-csv",
+      "runs": 3,
+      "median_seconds": 0.090957,
+      "max_peak_bytes": 34627584
+    },
+    {
+      "case": "stress-xlsx",
+      "runs": 3,
+      "median_seconds": 0.453366,
+      "max_peak_bytes": 87715840
+    },
+    {
+      "case": "stress-pdf",
+      "runs": 3,
+      "median_seconds": 0.237338,
+      "max_peak_bytes": 46215168
+    }
+  ]
+}

@@ -6,8 +6,8 @@
 
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
-[![Development Status](https://img.shields.io/badge/status-Quality%20Q6%20WIP-D97706?style=for-the-badge)](#-roadmap)
-[![Tests](https://img.shields.io/badge/tests-242%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
+[![Development Status](https://img.shields.io/badge/status-Quality%20Q7%20WIP-D97706?style=for-the-badge)](#-roadmap)
+[![Tests](https://img.shields.io/badge/tests-247%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
 [![MarkItDown](https://img.shields.io/badge/MarkItDown-0.1.9-2563EB?style=flat-square)](https://github.com/microsoft/markitdown)
@@ -30,7 +30,7 @@
 ---
 
 > [!IMPORTANT]
-> **Q6 stabilization is in progress: 242 tests pass.** Q6-B is complete: all ten formats share one validated output contract, structured metadata has explicit boundaries, and the unchanged corpus passes 101/101 checks. Q6-C final audit is next. See the [Q6-B acceptance report](docs/Q6_CHECKPOINT_2.md), [Q6 drag-and-drop report](docs/Q6_CHECKPOINT_1.md), and [changelog](CHANGELOG.md). Single-file Base64 remains the default.
+> **Q6 quality work is complete: 247 tests pass.** The final gate also passes 42 fresh-process corpus runs and 303/303 checks across ten formats plus four stress cases. PDF raster images now map to their source table cells when geometry is available. See the [Q6 final audit](docs/Q6_FINAL_AUDIT.md) and [changelog](CHANGELOG.md). Q7 installer and release work is now WIP.
 
 > [!NOTE]
 > This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
@@ -118,7 +118,7 @@
 <li>Single-file Markdown output with Base64-embedded images</li>
 <li>No OCR runtime, model pack, dataset, or training requirement</li>
 <li>Real DOCX image-to-Base64 integration coverage</li>
-<li>242 passing automated tests, including ten-format output contracts, format fidelity, contextual media, process reliability, and Add documents drag-and-drop acceptance</li>
+<li>247 passing automated tests, including ten-format output contracts, format fidelity, contextual media, process reliability, and Add documents drag-and-drop acceptance</li>
 </ul>
 </td>
 <td width="50%" valign="top">
@@ -129,8 +129,8 @@
 <li><strong>Completed — Quality Q3:</strong> format fidelity policies and acceptance fixtures</li>
 <li><strong>Completed — Quality Q4:</strong> contextual media, deduplication and portable asset export</li>
 <li><strong>Completed — Quality Q5:</strong> source-backed corpus, stress evaluation, cancellation and timeouts</li>
-<li><strong>WIP — Quality Q6:</strong> audit workflows, fix errors, improve conversion quality, expand testing, and stabilize the application</li>
-<li><strong>Planned — Quality Q7:</strong> Windows installer, clean-install validation, release packaging, and distribution documentation</li>
+<li><strong>Completed — Quality Q6:</strong> workflow audit, reproducible fixes, PDF table/image mapping, regression gates, and documentation reconciliation</li>
+<li><strong>WIP — Quality Q7:</strong> Windows installer, clean-install validation, release packaging, and distribution documentation</li>
 <li><strong>Planned:</strong> compatibility testing with major multimodal AI clients</li>
 </ul>
 </td>
@@ -200,7 +200,7 @@ The conversion path is local. TXT/JSON/XML/CSV/XLSX use dedicated fidelity paths
 <p>No API key is required for local conversion.</p>
 <h3 id="run-the-tests">🧪 Test</h3>
 <pre><code>python -m pytest -q</code></pre>
-<p>Last verified: <code>242 passed</code> (2026-11-17)</p>
+<p>Last verified: <code>247 passed</code> (2026-11-20)</p>
 </td>
 <td width="62%" valign="top">
 <h3 id="installation">📦 Installation</h3>
@@ -427,11 +427,11 @@ This design provides:
 
 The test suite focuses on application behavior and third-party integration boundaries. It does not pretend to test MarkItDown's internal algorithms as original project code.
 
-Q1 baseline: **80 → 92 passed**. Current suite: **242 passed**. Q6 adds seventeen drag-and-drop cases and twenty shared-contract/all-format cases. The unchanged semantic corpus passes 101/101 checks across ten formats and four stress cases. Passing these fixtures does not establish fidelity for every possible layout. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md), [Q4 acceptance](docs/Q4_ACCEPTANCE.md), [Q5 evidence](docs/Q5_ACCEPTANCE.md), [Q6 drag-and-drop](docs/Q6_CHECKPOINT_1.md), and [Q6-B acceptance](docs/Q6_CHECKPOINT_2.md).
+Q1 baseline: **80 → 92 passed**. Current suite: **247 passed**. The final Q6 corpus passes **303/303 checks in 42 fresh-process runs** across ten formats and four stress cases. Passing these fixtures does not establish fidelity for every possible layout. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md), [Q4 acceptance](docs/Q4_ACCEPTANCE.md), [Q5 evidence](docs/Q5_ACCEPTANCE.md), [Q6 drag-and-drop](docs/Q6_CHECKPOINT_1.md), [Q6-B acceptance](docs/Q6_CHECKPOINT_2.md), and the [Q6 final audit](docs/Q6_FINAL_AUDIT.md).
 
 Run reproducible synthetic probes with `python tools/audit_conversion_quality.py`. The script prints source/output comparisons and removes its temporary fixtures; it is not an accuracy benchmark. See the [audit](docs/CONVERSION_QUALITY_AUDIT.md) for observed losses and the measurement plan.
 
-Run `python tools/evaluate_q5.py --repeat 3 --output docs/benchmarks/q5-windows.json` for the current semantic corpus, stress gates, timing and process peak memory. Failed gates return a nonzero exit code. [Recorded measurements](docs/benchmarks/q5-windows.json) contain 42 successful runs; [Q5 methodology](docs/Q5_ACCEPTANCE.md) explains exactly what is measured. The older `evaluate_quality.py` remains a small smoke baseline.
+Run `python tools/evaluate_q5.py --repeat 3 --output docs/benchmarks/q6-final-windows.json` for the current semantic corpus, stress gates, timing and process peak memory. Failed gates return a nonzero exit code. [Recorded Q6 measurements](docs/benchmarks/q6-final-windows.json) contain 42 successful runs; the [Q6 final audit](docs/Q6_FINAL_AUDIT.md) explains the release gate. The older `evaluate_quality.py` remains a small smoke baseline.
 
 <table>
 <tr>
@@ -550,31 +550,31 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 | Quality Q3 | Format fidelity policies and source-backed acceptance; [scope and limits](docs/Q3_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q4 | Source-context media, deduplication, PDF visual modes and portable ZIP; [scope and limits](docs/Q4_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q5 | 205 tests, ten-format semantic corpus, four stress cases, active cancellation, process deadlines and offline checks; [evidence](docs/Q5_ACCEPTANCE.md) | ✅ Completed |
-| Quality Q6 — Fixing, testing, and stabilization | Q6-A accepted by user testing. Q6-B shared output policy and ten-format audit complete with 242 tests and 101/101 corpus checks. Q6-C final audit remains; [Q6-B report](docs/Q6_CHECKPOINT_2.md) | 🚧 WIP |
-| Quality Q7 — Installer and release | Build the Windows installer, verify clean installation and uninstall/update behavior, audit bundled dependencies and licenses, test the packaged worker, document distribution, and prepare the GitHub release | Planned after Q6 quality gates |
+| Quality Q6 — Fixing, testing, and stabilization | P0–P4 complete: reproducible fixes, PDF table/image mapping, 247 tests, 42 corpus runs, 303/303 checks, and final documentation audit; [final report](docs/Q6_FINAL_AUDIT.md) | ✅ Completed |
+| Quality Q7 — Installer and release | Build the Windows installer, verify clean installation and uninstall/update behavior, audit bundled dependencies and licenses, test the packaged worker, document distribution, and prepare the GitHub release | 🚧 WIP |
 
 ### Phase E result
 
 - Images are embedded automatically; there is no GUI model toggle.
 - DOCX, PPTX, and XLSX media are read directly from their OOXML containers.
-- PDF pages are rendered locally and embedded as PNG data URIs.
+- The GUI extracts PDF raster image objects, maps them to source table cells when geometry is available, and embeds them as data URIs; the API retains full-page rendering mode.
 - PNG, JPEG, GIF, WebP, BMP, TIFF, and SVG are supported.
 - Text and image payloads stay together in one `.md` file.
 - PaddleOCR, model packs, datasets, training scripts, and ML dependencies were removed.
 - Real DOCX image embedding and local PDF rendering are covered by tests.
 
-### Current: Quality Q6-C — final audit and stabilization
+### Current: Quality Q7 — installer and release
 
-1. Q6-A runtime/GUI acceptance: completed through user testing and automated regression coverage.
-2. Q6-B shared output validation, metadata policy, and all-format corpus: completed; see the [Q6-B report](docs/Q6_CHECKPOINT_2.md).
-3. Run the final repository and complete-workflow audit, fixing only reproducible remaining defects.
-4. Reconcile documentation, dependency/license evidence, test counts, and release-blocking limitations.
-5. Record the Q6 go/no-go decision, then begin Q7 installer work.
+1. Q6 P0–P4 quality work is complete; see the [Q6 final audit](docs/Q6_FINAL_AUDIT.md).
+2. Build the Windows installer from the pinned environment.
+3. Verify clean installation, conversion worker startup, upgrade, and uninstall behavior.
+4. Generate the final bundled dependency/license inventory and include required notices.
+5. Prepare checksums, distribution documentation, and the GitHub release artifact.
 
 The [implementation report](docs/QUALITY_IMPLEMENTATION.md) distinguishes delivered checkpoints from pending acceptance work. The [original audit](docs/CONVERSION_QUALITY_AUDIT.md) remains the historical baseline. Base64 remains available; advanced modes do not silently change the GUI default.
 
 > [!IMPORTANT]
-> Base64 round-trip preservation is tested for supported extracted media, including a real DOCX PNG. This does not guarantee that every visual element is extracted, that PDF rasterization is lossless, or that an external AI platform will decode images from an uploaded `.md` file.
+> Base64 round-trip preservation is tested for supported extracted media, including a real DOCX PNG and a positioned PDF table image. This does not guarantee that every vector/mask element is extracted, that PDF rasterization is lossless, or that an external AI platform will decode images from an uploaded `.md` file.
 
 Development follows this milestone cycle:
 

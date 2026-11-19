@@ -18,6 +18,8 @@ class _Cell:
     text: str
     colspan: int = 1
     rowspan: int = 1
+    bbox: tuple[float, float, float, float] | None = None
+    media_tokens: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -155,6 +157,9 @@ def _render_table(table: _TableBlock, metadata_mode: str) -> str:
         content.append("<tr>")
         for cell in row:
             text = html.escape(cell.text).replace("\n", "<br>")
+            if cell.media_tokens:
+                separator = "<br>" if text else ""
+                text += separator + "<br>".join(cell.media_tokens)
             content.append(
                 f'<td colspan="{cell.colspan}" rowspan="{cell.rowspan}">{text}</td>'
             )
@@ -216,6 +221,7 @@ class LayoutPdfConverter:
                                 value,
                                 xs.index(x1) - xs.index(x0),
                                 ys.index(y1) - ys.index(y0),
+                                tuple(cell),
                             ))
                         rows.append(cells)
 
@@ -237,6 +243,34 @@ class LayoutPdfConverter:
                         repair_count=repair_count,
                         segments=[geometry],
                     ))
+
+                image_blocks: list[tuple[float, float, str]] = []
+                if self.options.pdf_mode == "images":
+                    for image in page.images:
+                        bbox = (
+                            float(image["x0"]),
+                            float(image["top"]),
+                            float(image["x1"]),
+                            float(image["bottom"]),
+                        )
+                        token = "HYBRIDPAGE" + uuid4().hex.upper()
+                        center_x = (bbox[0] + bbox[2]) / 2
+                        center_y = (bbox[1] + bbox[3]) / 2
+                        target_cell = next((
+                            cell
+                            for table in table_blocks
+                            for row in table.rows
+                            for cell in row
+                            if cell.bbox is not None
+                            and cell.bbox[0] <= center_x <= cell.bbox[2]
+                            and cell.bbox[1] <= center_y <= cell.bbox[3]
+                        ), None)
+                        if target_cell is not None:
+                            target_cell.media_tokens.append(token)
+                            media_slots.append(PageMediaSlot(token, number, bbox, True))
+                        else:
+                            image_blocks.append((bbox[1], bbox[0], token))
+                            media_slots.append(PageMediaSlot(token, number, bbox))
 
                 def outside_tables(obj):
                     if obj.get("object_type") != "char":
@@ -265,6 +299,9 @@ class LayoutPdfConverter:
                         for table in table_blocks
                         if left <= table.bbox[0] < right
                     )
+                    ordered.extend(
+                        block for block in image_blocks if left <= block[1] < right
+                    )
                     ordered.sort(key=lambda item: (item[0], item[1]))
                     page_columns.append(ordered)
 
@@ -275,7 +312,7 @@ class LayoutPdfConverter:
                     for cell in row
                 )
                 token = None
-                if self.options.pdf_mode != "text":
+                if self.options.pdf_mode == "pages":
                     token = "HYBRIDPAGE" + uuid4().hex.upper()
                     media_slots.append(PageMediaSlot(token, number))
                 pages.append(_PageRecord(number, page_columns, table_blocks, token))
@@ -312,9 +349,11 @@ class LayoutPdfConverter:
                     else:
                         blocks.append(item)
                 rendered_columns.append("\n\n".join(blocks))
-            sections.append(f"## Page {page.number}\n\n" + "\n\n".join(rendered_columns))
+            body = "\n\n".join(column for column in rendered_columns if column)
             if page.media_token is not None:
-                sections.append(page.media_token)
+                body = body + ("\n\n" if body else "") + page.media_token
+            if body:
+                sections.append(f"## Page {page.number}\n\n{body}")
 
         if not has_text:
             warnings.append("No PDF text layer was extracted. Images are not OCR text.")
