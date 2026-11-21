@@ -6,7 +6,7 @@
 
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
-[![Development Status](https://img.shields.io/badge/status-Quality%20Q7%20WIP-D97706?style=for-the-badge)](#-roadmap)
+[![Development Status](https://img.shields.io/badge/status-Quality%20Q6--C%20DOCX%20WIP-D97706?style=for-the-badge)](#-roadmap)
 [![Tests](https://img.shields.io/badge/tests-247%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
@@ -30,7 +30,7 @@
 ---
 
 > [!IMPORTANT]
-> **Q6 quality work is complete: 247 tests pass.** The final gate also passes 42 fresh-process corpus runs and 303/303 checks across ten formats plus four stress cases. PDF raster images now map to their source table cells when geometry is available. See the [Q6 final audit](docs/Q6_FINAL_AUDIT.md) and [changelog](CHANGELOG.md). Q7 installer and release work is now WIP.
+> **Q6 quality work is complete: 247 tests pass.** The final gate also passes 42 fresh-process corpus runs and 303/303 checks across ten formats plus four stress cases. PDF raster images now map to their source table cells when geometry is available. See the [Q6 final audit](docs/Q6_FINAL_AUDIT.md) and [changelog](CHANGELOG.md). A follow-up DOCX audit found remaining Word-structure losses, so **Q6-C DOCX fidelity is now WIP**; Q7 installer and release work starts after it is stable.
 
 > [!NOTE]
 > This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
@@ -130,7 +130,8 @@
 <li><strong>Completed — Quality Q4:</strong> contextual media, deduplication and portable asset export</li>
 <li><strong>Completed — Quality Q5:</strong> source-backed corpus, stress evaluation, cancellation and timeouts</li>
 <li><strong>Completed — Quality Q6:</strong> workflow audit, reproducible fixes, PDF table/image mapping, regression gates, and documentation reconciliation</li>
-<li><strong>WIP — Quality Q7:</strong> Windows installer, clean-install validation, release packaging, and distribution documentation</li>
+<li><strong>WIP — Quality Q6-C:</strong> DOCX fidelity for equations, table headers, numbering, headings, run spacing, and image alt text</li>
+<li><strong>Planned — Quality Q7:</strong> Windows installer, clean-install validation, release packaging, and distribution documentation</li>
 <li><strong>Planned:</strong> compatibility testing with major multimodal AI clients</li>
 </ul>
 </td>
@@ -551,7 +552,8 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 | Quality Q4 | Source-context media, deduplication, PDF visual modes and portable ZIP; [scope and limits](docs/Q4_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q5 | 205 tests, ten-format semantic corpus, four stress cases, active cancellation, process deadlines and offline checks; [evidence](docs/Q5_ACCEPTANCE.md) | ✅ Completed |
 | Quality Q6 — Fixing, testing, and stabilization | P0–P4 complete: reproducible fixes, PDF table/image mapping, 247 tests, 42 corpus runs, 303/303 checks, and final documentation audit; [final report](docs/Q6_FINAL_AUDIT.md) | ✅ Completed |
-| Quality Q7 — Installer and release | Build the Windows installer, verify clean installation and uninstall/update behavior, audit bundled dependencies and licenses, test the packaged worker, document distribution, and prepare the GitHub release | 🚧 WIP |
+| Quality Q6-C — DOCX fidelity | Preserve OMML equations, table headers, `numbering.xml` lists, heading structure, run spacing, direct formatting overrides, and caption-based alt text; add two-column DOCX regressions | 🚧 WIP |
+| Quality Q7 — Installer and release | Build the Windows installer, verify clean installation and uninstall/update behavior, audit bundled dependencies and licenses, test the packaged worker, document distribution, and prepare the GitHub release | 📋 Planned |
 
 ### Phase E result
 
@@ -563,13 +565,24 @@ Direct dependencies are declared in `requirements.in`; the reproducible developm
 - PaddleOCR, model packs, datasets, training scripts, and ML dependencies were removed.
 - Real DOCX image embedding and local PDF rendering are covered by tests.
 
-### Current: Quality Q7 — installer and release
+### Current: Quality Q6-C — DOCX fidelity
 
-1. Q6 P0–P4 quality work is complete; see the [Q6 final audit](docs/Q6_FINAL_AUDIT.md).
-2. Build the Windows installer from the pinned environment.
-3. Verify clean installation, conversion worker startup, upgrade, and uninstall behavior.
-4. Generate the final bundled dependency/license inventory and include required notices.
-5. Prepare checksums, distribution documentation, and the GitHub release artifact.
+Q6 P0–P4 is complete; see the [Q6 final audit](docs/Q6_FINAL_AUDIT.md). A follow-up audit with a real two-column Word template found losses that the Q6 corpus did not cover. Fixes must stay generic: no logic tied to a file name, content, or sample document.
+
+1. **P0:** convert OMML equations to LaTeX (or a safe fallback) instead of keeping only the equation number.
+2. **P0:** emit the first table row as the header without an extra empty row.
+3. **P0:** preserve list numbering and nesting from `numbering.xml`, including custom level text such as `2.%1.` and `[%1]`.
+4. **P1:** map Word title/heading structure to Markdown headings, including documents without built-in Heading styles.
+5. **P1:** keep spaces between adjacent runs and honor direct overrides such as `w:b w:val="0"` over character styles.
+6. **P1:** replace empty or non-meaningful image alt text with the nearest caption or label.
+7. **P1:** add regression fixtures for two-column DOCX reading order and full-resolution images.
+
+### Next: Quality Q7 — installer and release
+
+1. Build the Windows installer from the pinned environment.
+2. Verify clean installation, conversion worker startup, upgrade, and uninstall behavior.
+3. Generate the final bundled dependency/license inventory and include required notices.
+4. Prepare checksums, distribution documentation, and the GitHub release artifact.
 
 The [implementation report](docs/QUALITY_IMPLEMENTATION.md) distinguishes delivered checkpoints from pending acceptance work. The [original audit](docs/CONVERSION_QUALITY_AUDIT.md) remains the historical baseline. Base64 remains available; advanced modes do not silently change the GUI default.
 
