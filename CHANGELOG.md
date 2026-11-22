@@ -9,7 +9,8 @@
 - Wrap the preview to the panel width and shorten embedded Base64 image data on screen only, so there is no long sideways scroll; Copy and Save keep the full file.
 - Add a warnings chip that explains "Converted with warnings" (notes worth a check, not errors) and hide Word style-name notices that do not change the output.
 - Add a subtle checker background and hard button shadows that collapse while pressed; colour whole list items with their labels highlighted.
-- Add five GUI regressions; the suite passes 263 tests.
+- Bundle the VT323 pixel font (SIL OFL 1.1, from google/fonts) for body text, lists, tooltips and the Markdown preview; Press Start 2P stays for titles and buttons.
+- Add six GUI regressions; the suite passes 264 tests.
 
 ## Unreleased — Q6-C DOCX P1 fidelity (2026-11-22)
 

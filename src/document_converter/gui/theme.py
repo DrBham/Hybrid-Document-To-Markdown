@@ -51,11 +51,15 @@ COLORS = {
 }
 
 
+FONT_FILES = ("PressStart2P-Regular.ttf", "VT323-Regular.ttf")
+
+
 def load_theme_fonts() -> None:
-    """Load the bundled OFL pixel font once for consistent headings."""
-    font_path = PROJECT_ROOT / "assets" / "fonts" / "PressStart2P-Regular.ttf"
-    if font_path.exists():
-        QFontDatabase.addApplicationFont(str(font_path))
+    """Load the bundled OFL pixel fonts: Press Start 2P for titles, VT323 for text."""
+    for name in FONT_FILES:
+        font_path = PROJECT_ROOT / "assets" / "fonts" / name
+        if font_path.exists():
+            QFontDatabase.addApplicationFont(str(font_path))
 
 
 C = COLORS
@@ -69,8 +73,8 @@ QMainWindow {{
 
 QWidget {{
     color: {C["foreground"]};
-    font-family: "Consolas";
-    font-size: 14px;
+    font-family: "VT323", "Consolas";
+    font-size: 20px;
 }}
 
 QLabel#appTitle {{
@@ -136,8 +140,8 @@ QLabel#toast {{
     border-bottom-color: {C["shadow"]};
     border-right-color: {C["shadow"]};
     color: {C["foreground"]};
-    font-size: 15px;
-    padding: 10px 16px;
+    font-size: 21px;
+    padding: 8px 16px;
 }}
 
 QFrame#dropZone {{
@@ -166,12 +170,12 @@ QLabel#fieldLabel {{
 
 QLabel#dropHint {{
     color: {C["muted_foreground"]};
-    font-size: 12px;
+    font-size: 18px;
 }}
 
 QLabel#mediaHelper {{
     color: {C["muted_foreground"]};
-    font-size: 12px;
+    font-size: 18px;
     padding-bottom: 2px;
 }}
 
@@ -307,8 +311,8 @@ QLineEdit:focus, QPlainTextEdit:focus, QTreeWidget:focus, QComboBox:focus {{
 }}
 
 QPlainTextEdit {{
-    font-family: "Consolas";
-    font-size: 14px;
+    font-family: "VT323", "Consolas";
+    font-size: 21px;
     padding: 10px;
 }}
 
@@ -421,8 +425,8 @@ QToolTip {{
     background-color: {C["foreground"]};
     border: 3px solid {C["outline"]};
     color: {C["ink"]};
-    font-family: "Consolas";
-    font-size: 13px;
-    padding: 5px 8px;
+    font-family: "VT323", "Consolas";
+    font-size: 19px;
+    padding: 4px 8px;
 }}
 """

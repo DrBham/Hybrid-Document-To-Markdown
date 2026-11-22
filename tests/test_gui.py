@@ -76,6 +76,14 @@ def test_window_exposes_accessible_file_workflow(window):
     assert "automatically" in window.drop_zone.format_selector.toolTip()
 
 
+def test_bundled_pixel_fonts_are_loaded(window):
+    from PySide6.QtGui import QFontDatabase
+
+    families = QFontDatabase.families()
+    assert "VT323" in families
+    assert "Press Start 2P" in families
+
+
 def test_document_panels_show_scrollbars_only_when_needed(window):
     as_needed = Qt.ScrollBarPolicy.ScrollBarAsNeeded
 

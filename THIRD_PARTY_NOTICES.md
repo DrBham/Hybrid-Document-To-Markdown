@@ -16,6 +16,7 @@ This file records important third-party software used or planned by **Hybrid Doc
 | [Microsoft MarkItDown](https://github.com/microsoft/markitdown) | 0.1.9 | Primary document conversion engine | MIT | Installed and integrated |
 | [PySide6 / Qt for Python](https://doc.qt.io/qtforpython-6/) | 6.12.0 | Windows desktop framework | LGPL-3.0 / GPL-3.0 / commercial options | Installed and integrated |
 | [Press Start 2P](https://github.com/google/fonts/tree/main/ofl/pressstart2p) | 3.000 | Pixel heading font | SIL Open Font License 1.1 | Bundled with OFL and FONTLOG |
+| [VT323](https://github.com/google/fonts/tree/main/ofl/vt323) | google/fonts main (2011 release) | Pixel body, list, and preview font | SIL Open Font License 1.1 | Bundled with OFL |
 | [pytest](https://github.com/pytest-dev/pytest) | 9.2.0 | Development testing | MIT | Development only |
 
 ## Format-specific runtime dependencies
