@@ -7,7 +7,7 @@
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
 [![Development Status](https://img.shields.io/badge/status-Quality%20Q6--C%20DOCX%20WIP-D97706?style=for-the-badge)](#-roadmap)
-[![Tests](https://img.shields.io/badge/tests-258%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
+[![Tests](https://img.shields.io/badge/tests-262%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
 [![MarkItDown](https://img.shields.io/badge/MarkItDown-0.1.9-2563EB?style=flat-square)](https://github.com/microsoft/markitdown)
@@ -108,7 +108,7 @@
 <li>Accessible file picker and drag and drop</li>
 <li>Threaded conversion with per-file status</li>
 <li>Markdown preview, copy, and collision-safe export</li>
-<li>Low-glare dark-medieval pixel theme with a TXT-first file selector</li>
+<li>Low-glare dark-medieval pixel theme: square bevelled buttons, hard-shadow cards, Add → Convert → Save steps, coloured file statuses, Markdown preview colouring, and pixel tooltips</li>
 <li>Custom transparent pixel-art application and header logo</li>
 <li>Scrollbars that appear only when content overflows</li>
 <li>Progressive “Save Markdown” action shown after successful conversion</li>

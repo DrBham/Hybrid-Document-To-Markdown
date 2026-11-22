@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Pixel GUI refresh
+
+- Restyle the desktop app with square bevelled pixel buttons that visibly press, hard-shadow cards with corner rivets, square scrollbars, segmented progress, and parchment pixel tooltips.
+- Replace the header badge with Add → Convert → Save workflow steps that follow the batch state.
+- Colour file statuses, confirm Copy on the button, and show short pop-up confirmations after conversion and saving.
+- Colour headings, lists, tables, emphasis, and math in the read-only Markdown preview; long embedded image lines stay dim and are not parsed.
+- Add four GUI regressions; the suite passes 262 tests.
+
 ## Unreleased — Q6-C DOCX P1 fidelity (2026-11-22)
 
 - Map Word structure to Markdown headings when built-in Heading styles are absent: outline levels, Title, bold numeric labels (`2.1.` becomes a level-3 heading), and short bold uppercase section names.

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from PySide6.QtCore import (
     QEvent,
+    QTimer,
     QMimeData,
     QObject,
     QStandardPaths,
@@ -55,6 +56,7 @@ from ..core.options import ConversionOptions
 from ..core.validator import SUPPORTED_FORMATS
 from ..services.batch_converter import BatchConverter
 from ..services.markdown_exporter import MarkdownExporter
+from .pixel_widgets import MarkdownHighlighter, PixelCard, Toast, WorkflowSteps, set_status
 from .theme import APP_LOGO_PATH, APP_STYLESHEET, load_theme_fonts
 
 
@@ -346,6 +348,7 @@ class MainWindow(QMainWindow):
         page.addWidget(splitter, stretch=1)
 
         self.statusBar().showMessage("Ready — local conversion only")
+        self.toast = Toast(root)
 
     def _build_header(self) -> QHBoxLayout:
         header = QHBoxLayout()
@@ -377,18 +380,14 @@ class MainWindow(QMainWindow):
         title_stack.addWidget(title)
         title_stack.addWidget(subtitle)
 
-        self.privacy_badge = QLabel("Local-first processing")
-        self.privacy_badge.setObjectName("privacyBadge")
-        self.privacy_badge.setAccessibleName(
-            "Local-first processing. No cloud upload is used."
-        )
+        self.workflow_steps = WorkflowSteps()
 
         header.addWidget(self.logo_label)
         header.addLayout(title_stack)
         header.addStretch()
         header.addWidget(
-            self.privacy_badge,
-            alignment=Qt.AlignmentFlag.AlignTop,
+            self.workflow_steps,
+            alignment=Qt.AlignmentFlag.AlignVCenter,
         )
         return header
 
@@ -401,8 +400,7 @@ class MainWindow(QMainWindow):
         self.drop_zone = DropZone()
         layout.addWidget(self.drop_zone)
 
-        files_card = QFrame()
-        files_card.setObjectName("card")
+        files_card = PixelCard()
         files_layout = QVBoxLayout(files_card)
         files_layout.setContentsMargins(16, 14, 16, 16)
         files_layout.setSpacing(10)
@@ -460,7 +458,10 @@ class MainWindow(QMainWindow):
             Qt.ScrollBarPolicy.ScrollBarAsNeeded
         )
         header = self.file_tree.header()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        # The name column absorbs spare width so the status tag stays readable;
+        # the full path remains in the name tooltip.
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
@@ -470,8 +471,7 @@ class MainWindow(QMainWindow):
         files_layout.addWidget(self.file_tree)
         layout.addWidget(files_card, stretch=1)
 
-        output_card = QFrame()
-        output_card.setObjectName("card")
+        output_card = PixelCard()
         output_layout = QVBoxLayout(output_card)
         output_layout.setContentsMargins(16, 14, 16, 16)
         output_layout.setSpacing(10)
@@ -539,8 +539,7 @@ class MainWindow(QMainWindow):
         return panel
 
     def _build_preview_panel(self) -> QWidget:
-        card = QFrame()
-        card.setObjectName("card")
+        card = PixelCard()
         layout = QVBoxLayout(card)
         layout.setContentsMargins(16, 14, 16, 16)
         layout.setSpacing(10)
@@ -592,6 +591,8 @@ class MainWindow(QMainWindow):
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Expanding,
         )
+
+        self._highlighter = MarkdownHighlighter(self.preview.document())
 
         self.preview_summary = QLabel("No conversion result yet")
         self.preview_summary.setObjectName("summaryLabel")
@@ -760,6 +761,7 @@ class MainWindow(QMainWindow):
                 self._format_size(resolved.stat().st_size),
                 "Pending",
             ])
+            set_status(item, "Pending")
             item.setData(0, Qt.ItemDataRole.UserRole, str(resolved))
             item.setToolTip(0, str(resolved))
             self.file_tree.addTopLevelItem(item)
@@ -828,7 +830,7 @@ class MainWindow(QMainWindow):
         self._outcomes.clear()
         self.export_button.hide()
         for item in self._items.values():
-            item.setText(3, "Converting")
+            set_status(item, "Converting")
             item.setToolTip(3, "")
 
         self._set_busy(True)
@@ -863,10 +865,10 @@ class MainWindow(QMainWindow):
         for outcome in batch.outcomes:
             item = self._items[self._path_key(outcome.source_path)]
             if outcome.succeeded:
-                item.setText(3, "Converted with warnings" if outcome.result.warnings else "Converted")
+                set_status(item, "Converted with warnings" if outcome.result.warnings else "Converted")
                 item.setToolTip(3, "\n".join(outcome.result.warnings))
             else:
-                item.setText(3, "Failed")
+                set_status(item, "Failed")
                 item.setToolTip(3, outcome.error or "Conversion failed")
 
         succeeded = len(batch.successful)
@@ -895,12 +897,16 @@ class MainWindow(QMainWindow):
             f"Conversion complete — {succeeded} succeeded, {failed} failed",
             6000,
         )
+        if succeeded:
+            self.toast.show_message(
+                f"Converted {succeeded} file{'s' if succeeded != 1 else ''} — ready to save"
+            )
         self._update_actions()
 
     @Slot(str)
     def _conversion_failed(self, message: str) -> None:
         for item in self._items.values():
-            item.setText(3, "Failed")
+            set_status(item, "Failed")
             item.setToolTip(3, message)
         self._show_error(
             f"The batch could not start: {message}. Check the selected files and "
@@ -970,6 +976,22 @@ class MainWindow(QMainWindow):
             return
         QApplication.clipboard().setText(text)
         self.statusBar().showMessage("Markdown copied to clipboard", 3000)
+        self._flash_copy_button()
+
+    def _flash_copy_button(self) -> None:
+        """Briefly confirm the copy on the button itself."""
+        self.copy_button.setText("Copied!")
+        self.copy_button.setObjectName("copiedButton")
+        self.copy_button.style().unpolish(self.copy_button)
+        self.copy_button.style().polish(self.copy_button)
+
+        def restore() -> None:
+            self.copy_button.setText("Copy")
+            self.copy_button.setObjectName("")
+            self.copy_button.style().unpolish(self.copy_button)
+            self.copy_button.style().polish(self.copy_button)
+
+        QTimer.singleShot(1500, self.copy_button, restore)
 
     @Slot()
     def _export_successful(self) -> None:
@@ -1032,12 +1054,12 @@ class MainWindow(QMainWindow):
             except OSError as exc:
                 failures.append(f"{target.name}: {exc}")
                 item = self._items[self._path_key(outcome.source_path)]
-                item.setText(3, "Save failed")
+                set_status(item, "Save failed")
                 item.setToolTip(3, str(exc))
             else:
                 exported += 1
                 item = self._items[self._path_key(outcome.source_path)]
-                item.setText(3, "Saved")
+                set_status(item, "Saved")
                 item.setToolTip(3, str(target))
 
         if failures:
@@ -1053,6 +1075,11 @@ class MainWindow(QMainWindow):
             f"{len(failures)} failed",
             7000,
         )
+        if exported:
+            self.toast.show_message(
+                f"Saved {exported} file{'s' if exported != 1 else ''} to {output_directory}"
+            )
+        self._update_actions()
 
     def _build_export_targets(
         self,
@@ -1104,6 +1131,31 @@ class MainWindow(QMainWindow):
         self.remove_button.setEnabled(bool(self._files) and not busy)
         self.clear_button.setEnabled(bool(self._files) and not busy)
         self.copy_button.setEnabled(bool(self.preview.toPlainText()))
+        self._update_workflow_steps(busy, count, has_success)
+
+    def _update_workflow_steps(self, busy: bool, count: int, has_success: bool) -> None:
+        statuses = [item.text(3) for item in self._items.values()]
+        saved = statuses.count("Saved")
+        unsaved = sum(status.startswith("Converted") for status in statuses)
+        if count == 0:
+            stage = 0
+        elif busy or not has_success:
+            stage = 1
+        elif unsaved:
+            stage = 2
+        else:
+            stage = 3
+        self.workflow_steps.set_stage(stage, (
+            f"{count} file{'s' if count != 1 else ''} in the batch" if count else "Drop or choose documents",
+            "Converting…" if busy else f"{len([s for s in statuses if s.startswith('Converted') or s == 'Saved'])} of {count} converted",
+            f"{unsaved} ready to save" if unsaved else f"{saved} saved" if saved else "Convert first, then save",
+        ))
+
+    def resizeEvent(self, event) -> None:  # noqa: N802 - Qt override
+        super().resizeEvent(event)
+        toast = getattr(self, "toast", None)
+        if toast is not None and toast.isVisible():
+            toast.reposition()
 
     def _reset_preview_if_needed(self) -> None:
         selected = self.file_tree.selectedItems()

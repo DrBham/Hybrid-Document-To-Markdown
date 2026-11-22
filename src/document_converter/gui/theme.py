@@ -12,22 +12,41 @@ APP_LOGO_PATH = PROJECT_ROOT / "assets" / "branding" / "app-logo.png"
 COLORS = {
     "primary": "#B59A68",
     "primary_hover": "#C5AC7B",
+    "primary_pressed": "#9C8457",
+    "primary_light": "#D4BF91",
+    "primary_dark": "#5E4F33",
     "accent": "#879285",
     "accent_hover": "#9AA497",
+    "accent_pressed": "#747E72",
+    "accent_light": "#B5BDB1",
+    "accent_dark": "#4A5248",
     "background": "#171614",
     "surface": "#211F1C",
     "surface_alt": "#2C2924",
+    "surface_hover": "#39342C",
     "input": "#141311",
     "foreground": "#D8D2C5",
     "muted_foreground": "#AAA294",
+    "dim_text": "#7A7368",
+    "strong_text": "#F0EADC",
+    "table_text": "#C8C1B3",
+    "math_text": "#D7B98A",
     "border": "#4D4840",
-    "danger": "#A67168",
+    "border_hover": "#6B624F",
+    "bevel_light": "#5A5348",
+    "outline": "#0E0D0B",
+    "shadow": "#0A0908",
+    "danger": "#B07F6E",
     "success": "#87967D",
+    "success_text": "#B9C2B5",
     "warning": "#B59A68",
+    "warning_chip": "#C9A54E",
     "ink": "#171512",
     "selection": "#413D36",
+    "row_hover": "#342F27",
     "scroll": "#665F54",
     "scroll_hover": "#7A7163",
+    "scroll_track": "#1C1A17",
 }
 
 
@@ -38,116 +57,150 @@ def load_theme_fonts() -> None:
         QFontDatabase.addApplicationFont(str(font_path))
 
 
+C = COLORS
+
+# Qt has no box-shadow, so pixel depth comes from two-tone 3 px bevels: light
+# top/left and dark bottom/right. Pressing swaps them and nudges the label.
 APP_STYLESHEET = f"""
 QMainWindow, QWidget#appRoot {{
-    background-color: {COLORS["background"]};
+    background-color: {C["background"]};
 }}
 
 QWidget {{
-    color: {COLORS["foreground"]};
+    color: {C["foreground"]};
     font-family: "Consolas";
     font-size: 14px;
 }}
 
 QLabel#appTitle {{
-    color: {COLORS["primary"]};
+    color: {C["primary"]};
     font-family: "Press Start 2P";
     font-size: 18px;
-    font-weight: 700;
 }}
 
 QLabel#sectionTitle {{
-    color: {COLORS["primary"]};
+    color: {C["primary"]};
     font-family: "Press Start 2P";
     font-size: 11px;
-    font-weight: 700;
 }}
 
 QLabel#mutedText, QLabel#previewFile, QLabel#summaryLabel {{
-    color: {COLORS["muted_foreground"]};
+    color: {C["muted_foreground"]};
 }}
 
-QLabel#privacyBadge {{
-    background-color: {COLORS["surface_alt"]};
-    border: 1px solid {COLORS["border"]};
-    color: {COLORS["primary"]};
+QLabel#appLogo {{
+    background-color: {C["surface"]};
+    border: 3px solid {C["outline"]};
+    padding: 3px;
+}}
+
+QLabel#stepChip {{
     font-family: "Press Start 2P";
     font-size: 8px;
-    font-weight: 600;
-    padding: 8px 12px;
+    padding: 8px 10px;
+    border: 3px solid {C["outline"]};
+    background-color: {C["surface"]};
+    color: {C["muted_foreground"]};
+}}
+
+QLabel#stepChip[state="done"] {{
+    background-color: {C["surface_alt"]};
+    color: {C["success_text"]};
+    border-bottom-color: {C["accent"]};
+}}
+
+QLabel#stepChip[state="active"] {{
+    background-color: {C["primary"]};
+    color: {C["ink"]};
+    border-color: {C["primary_light"]} {C["outline"]} {C["outline"]} {C["primary_light"]};
+}}
+
+QLabel#stepConnector {{
+    color: {C["border"]};
+    font-size: 10px;
 }}
 
 QLabel#errorBanner {{
     background-color: #302522;
-    border: 1px solid {COLORS["danger"]};
-    color: #E2C9C3;
+    border: 3px solid {C["danger"]};
+    color: #E8CFC8;
     padding: 12px 14px;
 }}
 
-QFrame#card {{
-    background-color: {COLORS["surface"]};
-    border: 1px solid {COLORS["border"]};
-    border-radius: 6px;
+QLabel#toast {{
+    background-color: {C["surface"]};
+    border: 3px solid {C["accent"]};
+    border-bottom-width: 6px;
+    border-right-width: 6px;
+    border-bottom-color: {C["shadow"]};
+    border-right-color: {C["shadow"]};
+    color: {C["foreground"]};
+    font-size: 15px;
+    padding: 10px 16px;
 }}
 
 QFrame#dropZone {{
-    background-color: {COLORS["surface"]};
-    border: 1px solid {COLORS["border"]};
-    border-radius: 6px;
+    background-color: {C["scroll_track"]};
+    border: 3px dashed {C["border_hover"]};
 }}
 
 QFrame#dropZone:hover {{
     background-color: #29261F;
-    border-color: {COLORS["primary"]};
+    border: 3px dashed {C["primary"]};
+}}
+
+QFrame#dropZone:focus {{
+    border: 3px solid {C["primary"]};
 }}
 
 QFrame#dropZone[dragActive="true"] {{
     background-color: #302D24;
-    border: 2px solid {COLORS["primary"]};
+    border: 3px solid {C["primary"]};
 }}
 
 QLabel#fieldLabel {{
-    color: {COLORS["muted_foreground"]};
+    color: {C["muted_foreground"]};
     font-weight: 600;
 }}
 
 QLabel#dropHint {{
-    color: {COLORS["muted_foreground"]};
+    color: {C["muted_foreground"]};
     font-size: 12px;
 }}
 
 QLabel#mediaHelper {{
-    color: {COLORS["muted_foreground"]};
+    color: {C["muted_foreground"]};
     font-size: 12px;
     padding-bottom: 2px;
 }}
 
 QPushButton {{
-    background-color: {COLORS["surface_alt"]};
-    border: 1px solid {COLORS["border"]};
-    border-radius: 4px;
-    color: {COLORS["foreground"]};
+    background-color: {C["surface_alt"]};
+    border-style: solid;
+    border-width: 3px;
+    border-color: {C["bevel_light"]} {C["outline"]} {C["outline"]} {C["bevel_light"]};
+    border-radius: 0;
+    color: {C["foreground"]};
     font-family: "Press Start 2P";
     font-size: 9px;
-    font-weight: 600;
-    min-height: 44px;
+    min-height: 40px;
     padding: 0 16px;
 }}
 
 QPushButton:hover {{
-    background-color: #39342C;
-    border-color: {COLORS["primary_hover"]};
-    color: {COLORS["foreground"]};
+    background-color: {C["surface_hover"]};
+    color: {C["strong_text"]};
 }}
 
 QPushButton:pressed {{
-    background-color: {COLORS["selection"]};
-    border-color: {COLORS["primary"]};
-    color: {COLORS["foreground"]};
+    background-color: {C["selection"]};
+    border-color: {C["outline"]} {C["bevel_light"]} {C["bevel_light"]} {C["outline"]};
+    padding: 3px 13px 0 19px;
 }}
 
 QPushButton:focus {{
-    border: 2px solid {COLORS["primary"]};
+    outline: none;
+    border-color: {C["primary"]};
 }}
 
 QPushButton:disabled {{
@@ -157,67 +210,92 @@ QPushButton:disabled {{
 }}
 
 QPushButton#primaryButton {{
-    background-color: {COLORS["primary"]};
-    border-color: {COLORS["primary"]};
-    color: {COLORS["ink"]};
+    background-color: {C["primary"]};
+    border-color: {C["primary_light"]} {C["primary_dark"]} {C["primary_dark"]} {C["primary_light"]};
+    color: {C["ink"]};
 }}
 
 QPushButton#primaryButton:hover {{
-    background-color: {COLORS["primary_hover"]};
-    border-color: #D4BF91;
+    background-color: {C["primary_hover"]};
+}}
+
+QPushButton#primaryButton:pressed {{
+    background-color: {C["primary_pressed"]};
+    border-color: {C["primary_dark"]} {C["primary_light"]} {C["primary_light"]} {C["primary_dark"]};
 }}
 
 QPushButton#accentButton {{
-    background-color: {COLORS["accent"]};
-    border-color: {COLORS["accent"]};
-    color: {COLORS["ink"]};
+    background-color: {C["accent"]};
+    border-color: {C["accent_light"]} {C["accent_dark"]} {C["accent_dark"]} {C["accent_light"]};
+    color: {C["ink"]};
 }}
 
 QPushButton#accentButton:hover {{
-    background-color: {COLORS["accent_hover"]};
-    border-color: #B5BDB1;
+    background-color: {C["accent_hover"]};
+}}
+
+QPushButton#accentButton:pressed {{
+    background-color: {C["accent_pressed"]};
+    border-color: {C["accent_dark"]} {C["accent_light"]} {C["accent_light"]} {C["accent_dark"]};
+}}
+
+QPushButton#primaryButton:disabled, QPushButton#accentButton:disabled {{
+    background-color: #25231F;
+    border-color: #39352F;
+    color: #777166;
+}}
+
+QPushButton#copiedButton {{
+    background-color: {C["accent"]};
+    border-color: {C["accent_light"]} {C["accent_dark"]} {C["accent_dark"]} {C["accent_light"]};
+    color: {C["ink"]};
 }}
 
 QLineEdit, QPlainTextEdit, QTreeWidget, QComboBox {{
-    background-color: {COLORS["input"]};
-    border: 1px solid {COLORS["border"]};
-    border-radius: 5px;
-    color: {COLORS["foreground"]};
-    selection-background-color: {COLORS["primary"]};
-    selection-color: {COLORS["ink"]};
+    background-color: {C["input"]};
+    border: 3px solid {C["border"]};
+    border-radius: 0;
+    color: {C["foreground"]};
+    selection-background-color: {C["primary"]};
+    selection-color: {C["ink"]};
 }}
 
 QLineEdit {{
-    min-height: 42px;
-    padding: 0 12px;
+    min-height: 36px;
+    padding: 0 10px;
 }}
 
 QComboBox {{
-    min-height: 42px;
-    padding: 0 12px;
+    min-height: 36px;
+    padding: 0 10px;
 }}
 
-QComboBox:hover {{
-    border-color: {COLORS["primary"]};
+QLineEdit:hover, QComboBox:hover, QTreeWidget:hover, QPlainTextEdit:hover {{
+    border-color: {C["border_hover"]};
+}}
+
+QComboBox::drop-down {{
+    border: 0;
+    width: 28px;
 }}
 
 QComboBox QAbstractItemView {{
-    background-color: {COLORS["surface_alt"]};
-    border: 1px solid {COLORS["border"]};
-    color: {COLORS["foreground"]};
-    selection-background-color: {COLORS["selection"]};
-    selection-color: {COLORS["foreground"]};
+    background-color: {C["surface_alt"]};
+    border: 3px solid {C["outline"]};
+    color: {C["foreground"]};
+    selection-background-color: {C["selection"]};
+    selection-color: {C["foreground"]};
     outline: 0;
 }}
 
 QLineEdit:focus, QPlainTextEdit:focus, QTreeWidget:focus, QComboBox:focus {{
-    border: 2px solid {COLORS["primary"]};
+    border-color: {C["primary"]};
 }}
 
 QPlainTextEdit {{
     font-family: "Consolas";
     font-size: 13px;
-    padding: 12px;
+    padding: 10px;
 }}
 
 QTreeWidget {{
@@ -226,56 +304,58 @@ QTreeWidget {{
 }}
 
 QTreeWidget::item {{
-    min-height: 38px;
-    padding: 3px 8px;
+    min-height: 34px;
+    padding: 2px 8px;
 }}
 
 QTreeWidget::item:hover {{
-    background-color: #342F27;
-    color: {COLORS["foreground"]};
+    background-color: {C["row_hover"]};
 }}
 
 QTreeWidget::item:selected {{
-    background-color: {COLORS["selection"]};
-    color: {COLORS["foreground"]};
+    background-color: {C["selection"]};
+    color: {C["strong_text"]};
 }}
 
 QHeaderView::section {{
-    background-color: {COLORS["surface_alt"]};
+    background-color: {C["surface_alt"]};
     border: 0;
-    border-right: 1px solid {COLORS["border"]};
-    border-bottom: 1px solid {COLORS["border"]};
-    color: {COLORS["primary"]};
+    border-right: 3px solid {C["input"]};
+    border-bottom: 3px solid {C["border"]};
+    color: {C["primary"]};
     font-family: "Press Start 2P";
     font-size: 8px;
-    font-weight: 700;
     padding: 10px;
 }}
 
 QScrollBar:vertical {{
-    background: transparent;
+    background: {C["scroll_track"]};
     border: 0;
-    width: 12px;
-    margin: 2px;
+    width: 14px;
+    margin: 0;
 }}
 
 QScrollBar:horizontal {{
-    background: transparent;
+    background: {C["scroll_track"]};
     border: 0;
-    height: 12px;
-    margin: 2px;
+    height: 14px;
+    margin: 0;
 }}
 
 QScrollBar::handle:vertical, QScrollBar::handle:horizontal {{
-    background: {COLORS["scroll"]};
-    border: 0;
-    border-radius: 5px;
+    background: {C["scroll"]};
+    border: 3px solid {C["scroll_track"]};
+    border-radius: 0;
     min-height: 36px;
     min-width: 36px;
 }}
 
 QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover {{
-    background: {COLORS["scroll_hover"]};
+    background: {C["scroll_hover"]};
+}}
+
+QScrollBar::handle:vertical:pressed, QScrollBar::handle:horizontal:pressed {{
+    background: {C["primary"]};
 }}
 
 QScrollBar::add-line, QScrollBar::sub-line {{
@@ -289,35 +369,46 @@ QScrollBar::add-page, QScrollBar::sub-page {{
     background: transparent;
 }}
 
+QAbstractScrollArea::corner {{
+    background: {C["scroll_track"]};
+}}
+
 QProgressBar {{
-    background-color: {COLORS["input"]};
-    border: 1px solid {COLORS["border"]};
-    border-radius: 4px;
-    max-height: 10px;
-    min-height: 10px;
+    background-color: {C["input"]};
+    border: 3px solid {C["outline"]};
+    border-radius: 0;
+    max-height: 20px;
+    min-height: 20px;
+    padding: 2px;
 }}
 
 QProgressBar::chunk {{
-    background-color: {COLORS["primary"]};
-    border-radius: 3px;
+    background-color: {C["primary"]};
+    width: 10px;
+    margin-right: 3px;
 }}
 
 QSplitter::handle {{
-    background-color: {COLORS["border"]};
-    width: 3px;
+    background-color: transparent;
+    width: 8px;
+}}
+
+QSplitter::handle:hover {{
+    background-color: {C["border"]};
 }}
 
 QStatusBar {{
-    background-color: {COLORS["input"]};
-    border-top: 1px solid {COLORS["border"]};
-    color: {COLORS["muted_foreground"]};
+    background-color: {C["input"]};
+    border-top: 3px solid {C["border"]};
+    color: {C["muted_foreground"]};
 }}
 
 QToolTip {{
-    background-color: {COLORS["surface_alt"]};
-    border: 1px solid {COLORS["primary"]};
-    color: {COLORS["foreground"]};
+    background-color: {C["foreground"]};
+    border: 3px solid {C["outline"]};
+    color: {C["ink"]};
     font-family: "Consolas";
-    padding: 6px;
+    font-size: 13px;
+    padding: 5px 8px;
 }}
 """

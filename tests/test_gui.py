@@ -87,7 +87,7 @@ def test_document_panels_show_scrollbars_only_when_needed(window):
 
 
 def test_embedded_media_is_automatic_and_model_free(window):
-    assert window.privacy_badge.text() == "Local-first processing"
+    assert not hasattr(window, "privacy_badge")
     helper = window.media_helper.text().lower()
     assert "base64" in helper
     assert "automatically" in helper
@@ -411,3 +411,72 @@ def test_gui_remains_responsive_and_cancels_active_parser(window, app, tmp_path,
         while window._thread is not None and time.monotonic() < deadline:
             app.processEvents()
             time.sleep(.01)
+
+
+def _converted_batch(source, markdown="# Report\n\nConverted locally."):
+    conversion = ConversionResult(
+        source_path=source.resolve(), source_format="txt", markdown=markdown,
+    )
+    return BatchConversionResult(
+        extension=".txt",
+        outcomes=(FileConversionOutcome(source_path=source.resolve(), result=conversion),),
+    )
+
+
+def _stage_states(window):
+    return [chip.property("state") for chip in window.workflow_steps.chips]
+
+
+def test_workflow_steps_follow_add_convert_save(window, tmp_path):
+    assert _stage_states(window) == ["active", "next", "next"]
+    source = create_files(tmp_path, "report.txt")[0]
+    window.add_files([source])
+    assert _stage_states(window) == ["done", "active", "next"]
+
+    window._conversion_finished(_converted_batch(source))
+    assert _stage_states(window) == ["done", "done", "active"]
+    assert window.toast.isVisible() or window.toast.text().endswith("ready to save")
+
+    window.output_path.setText(str(tmp_path / "out"))
+    window._export_successful()
+    assert window.file_tree.topLevelItem(0).text(3) == "Saved"
+    assert _stage_states(window) == ["done", "done", "done"]
+    assert "Saved 1 file" in window.toast.text()
+
+
+def test_status_tags_are_coloured(window, tmp_path):
+    source = create_files(tmp_path, "report.txt")[0]
+    window.add_files([source])
+    item = window.file_tree.topLevelItem(0)
+    pending = item.foreground(3).color().name()
+
+    window._conversion_finished(_converted_batch(source))
+    assert item.text(3) == "Converted"
+    assert item.foreground(3).color().name() != pending
+
+
+def test_copy_button_confirms_then_restores(window, tmp_path, app):
+    source = create_files(tmp_path, "report.txt")[0]
+    window.add_files([source])
+    window._conversion_finished(_converted_batch(source))
+
+    window._copy_preview()
+    assert window.copy_button.text() == "Copied!"
+    assert QApplication.clipboard().text().startswith("# Report")
+
+    deadline = time.monotonic() + 3
+    while window.copy_button.text() != "Copy" and time.monotonic() < deadline:
+        app.processEvents()
+        time.sleep(0.02)
+    assert window.copy_button.text() == "Copy"
+
+
+def test_preview_highlighter_handles_long_embedded_media(window, tmp_path):
+    source = create_files(tmp_path, "report.txt")[0]
+    window.add_files([source])
+    markdown = "# Title\n\n- item\n\n$x^2$\n\n[hybrid-media-1]: <data:image/png;base64," + "A" * 50_000 + ">"
+    window._conversion_finished(_converted_batch(source, markdown))
+    assert window.preview.toPlainText() == markdown
+    block = window.preview.document().firstBlock()
+    formats = block.layout().formats()
+    assert formats, "headings should be coloured"
