@@ -421,7 +421,11 @@ class MainWindow(QMainWindow):
 
         self.drop_zone = DropZone()
         layout.addWidget(self.drop_zone)
+        layout.addWidget(self._build_files_card(), stretch=1)
+        layout.addWidget(self._build_output_card())
+        return panel
 
+    def _build_files_card(self) -> QWidget:
         files_card = PixelCard()
         files_layout = QVBoxLayout(files_card)
         files_layout.setContentsMargins(16, 14, 16, 16)
@@ -491,8 +495,9 @@ class MainWindow(QMainWindow):
 
         files_layout.addLayout(files_header)
         files_layout.addWidget(self.file_tree)
-        layout.addWidget(files_card, stretch=1)
+        return files_card
 
+    def _build_output_card(self) -> QWidget:
         output_card = PixelCard()
         output_layout = QVBoxLayout(output_card)
         output_layout.setContentsMargins(16, 14, 16, 16)
@@ -557,8 +562,7 @@ class MainWindow(QMainWindow):
         output_layout.addWidget(self.media_helper)
         output_layout.addLayout(output_row)
         output_layout.addLayout(action_row)
-        layout.addWidget(output_card)
-        return panel
+        return output_card
 
     def _build_preview_panel(self) -> QWidget:
         card = PixelCard()
@@ -844,10 +848,7 @@ class MainWindow(QMainWindow):
         self._outcomes.clear()
         self.drop_zone.reset_format()
         self._hide_error()
-        self.preview.clear()
-        self.preview_file.setText("Select a converted file")
-        self.preview_summary.setText("No conversion result yet")
-        self._set_preview_warnings(())
+        self._reset_preview()
         self._update_actions()
 
     @Slot()
@@ -1219,15 +1220,18 @@ class MainWindow(QMainWindow):
         if toast is not None and toast.isVisible():
             toast.reposition()
 
+    def _reset_preview(self) -> None:
+        self.preview.clear()
+        self.preview_file.setText("Select a converted file")
+        self.preview_summary.setText("No conversion result yet")
+        self._set_preview_warnings(())
+
     def _reset_preview_if_needed(self) -> None:
         selected = self.file_tree.selectedItems()
         if selected:
             self._show_selected_preview()
             return
-        self.preview.clear()
-        self.preview_file.setText("Select a converted file")
-        self.preview_summary.setText("No conversion result yet")
-        self._set_preview_warnings(())
+        self._reset_preview()
 
     def _show_error(self, message: str) -> None:
         self.error_banner.setText(message)

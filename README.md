@@ -1,269 +1,81 @@
 <div align="center">
 
-<img src="assets/branding/app-logo.png" alt="Hybrid Document to Markdown logo" width="128">
+<img src="assets/branding/app-logo.png" alt="Hybrid Document to Markdown logo" width="112">
 
-# 📄 Hybrid Document to Markdown
+# Hybrid Document to Markdown
 
-### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
+A Windows desktop app that converts local documents into one clean Markdown file, with images kept inside.
 
-[![Development Status](https://img.shields.io/badge/status-Quality%20Q6--C%20DOCX%20WIP-D97706?style=for-the-badge)](#-roadmap)
-[![Tests](https://img.shields.io/badge/tests-264%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
-[![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
-
-[![MarkItDown](https://img.shields.io/badge/MarkItDown-0.1.9-2563EB?style=flat-square)](https://github.com/microsoft/markitdown)
+[![Tests](https://img.shields.io/badge/tests-244%20passed-16A34A?style=flat-square&logo=pytest&logoColor=white)](#testing)
+[![Python](https://img.shields.io/badge/python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](#requirements)
 [![PySide6](https://img.shields.io/badge/PySide6-6.12-41CD52?style=flat-square&logo=qt&logoColor=white)](https://doc.qt.io/qtforpython-6/)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows&logoColor=white)](#requirements)
 [![License](https://img.shields.io/badge/license-MIT-F59E0B?style=flat-square)](LICENSE)
 
-**Convert common documents into readable Markdown without rebuilding format-specific parsers from scratch.**<br>
-**The project combines a tested conversion core with a beginner-friendly Windows desktop workflow.**
-
-[Overview](#-overview) •
-[Features](#-feature-status) •
-[Formats](#-supported-formats) •
-[Quick Start](#-quick-start) •
-[Architecture](#-architecture) •
-[Roadmap](#-roadmap)
-
 </div>
 
----
+## Overview
 
-> [!IMPORTANT]
-> **Q6 quality work is complete: 247 tests pass.** The final gate also passes 42 fresh-process corpus runs and 303/303 checks across ten formats plus four stress cases. PDF raster images now map to their source table cells when geometry is available. See the [Q6 final audit](docs/Q6_FINAL_AUDIT.md) and [changelog](CHANGELOG.md). A follow-up DOCX audit found remaining Word-structure losses, so **Q6-C DOCX fidelity is now WIP**; Q7 installer and release work starts after it is stable.
+Hybrid Document to Markdown turns everyday documents into Markdown that people and LLMs can read. Everything runs on your computer: no cloud service, account, or API key.
 
-> [!NOTE]
-> This is an independent portfolio project that uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown). It is not an official Microsoft product and is not affiliated with or endorsed by Microsoft.
+- **One file per document.** Images are embedded as Base64, so the `.md` file is self-contained.
+- **Structure is kept.** Headings, numbered lists, tables, equations (as LaTeX), and footnotes carry over where the source defines them.
+- **Batch friendly.** Convert several files of the same type at once; one failure does not stop the rest.
+- **Review before saving.** Preview the Markdown, copy it, or save it to a folder you choose.
 
-## 📚 Table of Contents
+> This is an independent portfolio project. It uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown) but is not affiliated with Microsoft.
 
-- [Overview](#-overview)
-- [Feature Status](#-feature-status)
-- [Supported Formats](#-supported-formats)
-- [How Conversion Works](#-how-conversion-works)
-- [Quick Start](#-quick-start)
-  - [Requirements](#requirements)
-  - [Installation](#installation)
-  - [Run the Desktop App](#-run-the-desktop-app)
-  - [Run the Tests](#run-the-tests)
-  - [Use the Core API](#-use-the-core-api)
-- [Batch Rules and Validation](#-batch-rules-and-validation)
-- [Architecture](#-architecture)
-- [Project Structure](#-project-structure)
-- [Testing](#-testing)
-- [Privacy and Limitations](#-privacy-and-limitations)
-- [Technology Stack](#-technology-stack)
-- [Roadmap](#-roadmap)
-- [Engineering Principles](#-engineering-principles)
-- [License and Credits](#-license-and-credits)
+## Supported formats
 
-<a id="-overview"></a>
+| Format | Extensions | Notes |
+|---|---|---|
+| Word | `.docx` | Headings, list numbering, tables, equations, footnotes, images |
+| PDF | `.pdf` | Text layout, ruled tables, images placed in their table cells |
+| PowerPoint | `.pptx` | Slide text, images, chart data |
+| Excel | `.xlsx` | Cell values, formulas, images by cell anchor |
+| Text and data | `.txt`, `.csv`, `.json`, `.xml` | Source text preserved exactly |
+| Web | `.html`, `.htm` | Text, tables, preformatted blocks |
 
-## 🔎 Overview
+Scanned PDFs are not run through OCR. Complex layouts may still need a quick review.
 
-<table>
-<tr>
-<td width="50%" valign="top">
-<h3>🎯 What it does</h3>
-<p>Hybrid Document to Markdown converts common documents into Markdown (<code>.md</code>). It targets users who want a clear Windows workflow instead of manual conversion commands.</p>
-<ul>
-<li>Validates local documents</li>
-<li>Routes multiple file formats</li>
-<li>Processes safe same-extension batches</li>
-<li>Preserves independent file outcomes</li>
-<li>Exports UTF-8 Markdown</li>
-</ul>
-</td>
-<td width="50%" valign="top">
-<h3>💡 Why it exists</h3>
-<p>The project combines established document parsers with focused fidelity paths for text and structured data, supported by a local desktop workflow and regression tests.</p>
-<ul>
-<li>Local-first processing</li>
-<li>Predictable validation</li>
-<li>Transparent errors</li>
-<li>PySide6 desktop usability</li>
-<li>Reproducible integration tests</li>
-</ul>
-</td>
-</tr>
-</table>
+## Requirements
 
-> [!NOTE]
-> Earlier heuristic TXT-converter code remains as a learning milestone. Production combines dedicated fidelity paths, Mammoth for Word, pdfplumber for PDF layout, and MarkItDown for PowerPoint text/chart conversion.
+- Windows 10 or 11
+- Python 3.13
+- Git
 
-<a id="-feature-status"></a>
+## Installation
 
-## ✨ Feature Status
+Dependencies are not stored in this repository. Install them into a local virtual environment:
 
-<table>
-<tr>
-<td width="50%" valign="top">
-<h3>✅ Implemented</h3>
-<ul>
-<li>Multi-format conversion core</li>
-<li>Same-extension batch conversion</li>
-<li>Independent per-file outcomes</li>
-<li>Existence, type, extension, size, and readability validation</li>
-<li>UTF-8 Markdown export with overwrite protection</li>
-<li>Accessible file picker and drag and drop</li>
-<li>Threaded conversion with per-file status</li>
-<li>Markdown preview, copy, and collision-safe export</li>
-<li>Low-glare dark-medieval pixel theme: square bevelled buttons, hard-shadow cards, Add → Convert → Save steps, coloured file statuses, Markdown preview colouring, and pixel tooltips</li>
-<li>Custom transparent pixel-art application and header logo</li>
-<li>Scrollbars that appear only when content overflows</li>
-<li>Progressive “Save Markdown” action shown after successful conversion</li>
-<li>Automatic DOCX, PPTX, and XLSX embedded-image extraction</li>
-<li>Automatic local PDF-page rendering</li>
-<li>PNG, JPEG, GIF, WebP, BMP, TIFF, and SVG data-URI support</li>
-<li>Single-file Markdown output with Base64-embedded images</li>
-<li>No OCR runtime, model pack, dataset, or training requirement</li>
-<li>Real DOCX image-to-Base64 integration coverage</li>
-<li>247 passing automated tests, including ten-format output contracts, format fidelity, contextual media, process reliability, and Add documents drag-and-drop acceptance</li>
-</ul>
-</td>
-<td width="50%" valign="top">
-<h3>🚧 WIP &amp; planned</h3>
-<ul>
-<li><strong>Completed — Phase E:</strong> preserve images inside one Markdown file</li>
-<li><strong>Implemented — Quality Q2:</strong> options, warnings, atomic export and resource safeguards</li>
-<li><strong>Completed — Quality Q3:</strong> format fidelity policies and acceptance fixtures</li>
-<li><strong>Completed — Quality Q4:</strong> contextual media, deduplication and portable asset export</li>
-<li><strong>Completed — Quality Q5:</strong> source-backed corpus, stress evaluation, cancellation and timeouts</li>
-<li><strong>Completed — Quality Q6:</strong> workflow audit, reproducible fixes, PDF table/image mapping, regression gates, and documentation reconciliation</li>
-<li><strong>WIP — Quality Q6-C:</strong> DOCX fidelity for equations, table headers, numbering, headings, run spacing, and image alt text</li>
-<li><strong>Planned — Quality Q7:</strong> Windows installer, clean-install validation, release packaging, and distribution documentation</li>
-<li><strong>Planned:</strong> compatibility testing with major multimodal AI clients</li>
-</ul>
-</td>
-</tr>
-</table>
-
-<a id="-supported-formats"></a>
-
-## 🗃️ Supported Formats
-
-Representative integration coverage exists for every MVP format.
-
-| Category | Extensions | Dependency path | Verification |
-|---|---|---|:---:|
-| Plain text | `.txt` | Strict decoded source preservation | ✅ Passed |
-| Word | `.docx` | Mammoth + protected semantic HTML | ✅ Tables, nested lists and notes |
-| PDF | `.pdf` | pdfplumber page geometry | ✅ Explicit columns and ruled tables |
-| PowerPoint | `.pptx` | `markitdown[pptx]` | ✅ Passed |
-| Excel | `.xlsx` | openpyxl + source XML literals | ✅ Values, formulas and metadata |
-| Tabular data | `.csv` | String fields + original source appendix | ✅ Passed |
-| Web documents | `.html`, `.htm` | Local HTML adapter + MarkItDown HTML parser | ✅ Passed |
-| Structured text | `.json`, `.xml` | Source-preserving fenced text | ✅ Passed |
-
-> [!WARNING]
-> “Supported” does not mean perfect visual fidelity. Embedded images are preserved as Base64, not interpreted. Whether an AI chat decodes a Markdown data URI depends on that platform.
-
-Emails, archives, audio, EPUB, LOG files, and standalone image conversion are outside the committed MVP scope.
-
-<a id="-how-conversion-works"></a>
-
-## 🔄 How Conversion Works
-
-```mermaid
-flowchart LR
-    A[Local documents] --> B[File validation]
-    B --> C{Same extension?}
-    C -- No --> X[Reject batch]
-    C -- Yes --> D[Converter router]
-    D --> E[Format-specific fidelity paths / MarkItDown]
-    D --> I[Local document image extraction]
-    I --> O[Base64 data URI encoding]
-    E --> M[Merge into one Markdown file]
-    O --> M
-    M --> F[Per-file outcomes]
-    F --> G[Markdown export]
-    G --> H[One .md file per input]
-
-    UI[PySide6 GUI] -. controls .-> A
-```
-
-The conversion path is local. TXT/JSON/XML/CSV/XLSX use dedicated fidelity paths; HTML/HTM preserve preformatted text and complex tables. Word uses Mammoth with protected table/note structures; PDF uses pdfplumber page geometry; PowerPoint combines MarkItDown with source-backed chart/connector metadata. `DocumentImageExtractor` retrieves visuals and the media decorator embeds Base64. Limits reject oversized processing explicitly.
-
-<a id="-quick-start"></a>
-
-## 🚀 Quick Start
-
-<table>
-<tr>
-<td width="38%" valign="top">
-<h3 id="requirements">📋 Requirements</h3>
-<ul>
-<li>Windows 10 or 11</li>
-<li>Python 3.13</li>
-<li>Git and PowerShell</li>
-<li>Internet during installation</li>
-</ul>
-<p>No API key is required for local conversion.</p>
-<h3 id="run-the-tests">🧪 Test</h3>
-<pre><code>python -m pytest -q</code></pre>
-<p>Last verified: <code>247 passed</code> (2026-11-20)</p>
-</td>
-<td width="62%" valign="top">
-<h3 id="installation">📦 Installation</h3>
-<pre><code>git clone https://github.com/DrBham/Hybird-Document-To-Markdown.git
-cd Hybird-Document-To-Markdown
+```powershell
+git clone https://github.com/DrBham/Hybrid-Document-To-Markdown.git
+cd Hybrid-Document-To-Markdown
 
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-
 python -m pip install -r requirements.txt
-python -m pip check</code></pre>
-<p>Activate <code>.venv</code> before developing or testing so project packages stay isolated.</p>
-</td>
-</tr>
-</table>
+```
 
-> [!NOTE]
-> The root-level `pytest.ini` adds `src` to pytest's import path. It is configuration, not a generated cache file.
+`requirements.txt` pins the tested versions. `requirements.in` lists the direct dependencies.
 
-<a id="-run-the-desktop-app"></a>
+## Usage
 
-### 🖥️ Run the Desktop App
-
-From the repository root with the virtual environment active:
+Start the app from the repository root:
 
 ```powershell
 $env:PYTHONPATH = "src"
 python -m document_converter
 ```
 
-The file-type selector starts at TXT and filters the Browse dialog. Dropping local documents detects their extension automatically and updates the selector; one batch still contains one file type. Then convert the files, review a result, and choose an output folder. “Save Markdown” appears after at least one conversion succeeds. A worker thread supervises a separate parser process, so the window remains responsive. “Cancel conversion” stops the active file and skips remaining files while keeping completed results. Each file has a 120-second deadline, including process startup; advanced callers can configure it through `BatchConverter(timeout_seconds=...)`.
+1. **Add** documents with *Choose files* or by dropping them onto the window.
+2. **Convert** them. Each file shows its status in the list.
+3. **Review** a result in the preview. *N warnings* lists anything worth checking; warnings are not errors.
+4. **Save** the Markdown to the output folder.
 
-### 🖼️ Single-File Image Embedding
+Each file has a 120-second limit, and *Cancel conversion* stops a running batch while keeping finished results.
 
-Image embedding is automatic for PDF, DOCX, PPTX, and XLSX inputs. No separate runtime or model installation is required.
-
-The generated Markdown contains entries such as:
-
-```markdown
-![Embedded image: diagram.png](data:image/png;base64,iVBORw0KGgo...)
-```
-
-The characters after `base64,` encode the extracted image bytes. Supported OOXML media use original source bytes. PDF defaults to rendered page PNGs; `pdf_mode="images"` can preserve native JPEG streams but may re-encode other formats. Word/PPTX images retain source positions, Excel images identify worksheet anchors, and PDF visuals remain with their page. Repeated Markdown images share a Base64 reference definition. See [Q4 options and ZIP export](docs/Q4_ACCEPTANCE.md#configuration-and-export).
-
-Decoding or displaying these payloads depends on the receiving client; uploading a `.md` file does not guarantee that an AI chat will inspect its images.
-
-> [!IMPORTANT]
-> Base64 is encoding, not encryption or OCR. It preserves the original visual but does not describe its meaning. Uploading the Markdown to a third-party AI also subjects its contents to that provider's privacy policy.
-
-> [!WARNING]
-> Base64 increases binary size by roughly one third, and not every AI chat accepts or renders data URIs from an uploaded `.md` file. Large PDFs can therefore produce very large Markdown files.
-
-<a id="-use-the-core-api"></a>
-
-### 🧑‍💻 Use the Core API
-
-See [advanced options and asset ZIP export](docs/QUALITY_IMPLEMENTATION.md#api-and-compatibility) for encoding, delimiter, PDF mode, formula/cache view, structured metadata, sheet selection, resource budgets, and portable assets. These advanced options are available through the core API; the GUI keeps its Base64 workflow.
-
-> [!NOTE]
-> The desktop app is the recommended interactive workflow. The examples below show how to reuse the tested Python core directly.
-
-Convert one file:
+### Python API
 
 ```python
 from pathlib import Path
@@ -271,366 +83,70 @@ from pathlib import Path
 from document_converter.core.router import ConverterRouter
 from document_converter.services.markdown_exporter import MarkdownExporter
 
-
-source = Path("documents/report.pdf")
-
-conversion = ConverterRouter().convert(source)
-output = source.with_suffix(".md")
-
-MarkdownExporter().export(
-    conversion.markdown,
-    output,
-    overwrite=False,
-)
-
-print(f"Saved: {output}")
+result = ConverterRouter().convert(Path("report.docx"))
+MarkdownExporter().export(result.markdown, Path("report.md"), overwrite=False)
 ```
 
-Convert a same-extension batch:
+Use `BatchConverter().convert(paths)` for several files of one type. Advanced options (encoding, PDF modes, sheet selection, asset ZIP export) are described in [docs/QUALITY_IMPLEMENTATION.md](docs/QUALITY_IMPLEMENTATION.md#api-and-compatibility).
 
-```python
-from pathlib import Path
+## How it works
 
-from document_converter.services.batch_converter import BatchConverter
-
-
-files = [
-    Path("documents/report.pdf"),
-    Path("documents/manual.pdf"),
-    Path("documents/tutorial.PDF"),
-]
-
-batch = BatchConverter().convert(files)
-
-for outcome in batch.outcomes:
-    if outcome.succeeded:
-        print(f"Converted: {outcome.source_path.name}")
-    else:
-        print(f"Failed: {outcome.source_path.name} — {outcome.error}")
+```mermaid
+flowchart LR
+    A[Documents] --> B[Validate]
+    B --> C[Route by extension]
+    C --> D[Format converter]
+    C --> E[Extract images]
+    D --> F[Markdown]
+    E --> F
+    F --> G[Preview and save]
 ```
 
-When running a standalone development script from the repository root, expose the `src` directory first:
+Each format has its own converter: Mammoth plus Word XML parsing for DOCX, pdfplumber geometry for PDF, MarkItDown for PPTX, openpyxl for XLSX, and source-preserving paths for text formats. Conversions run in a separate process so the window stays responsive.
 
-```powershell
-$env:PYTHONPATH = "src"
-python .\your_script.py
-```
-
-<a id="-batch-rules-and-validation"></a>
-
-## 🛡️ Batch Rules and Validation
-
-<table>
-<tr>
-<td width="50%" valign="top">
-<h3>📚 Batch rules</h3>
-<ul>
-<li>At least one file is required.</li>
-<li>All extensions must match, ignoring case.</li>
-<li>Each file converts independently.</li>
-<li>Successful results survive other failures.</li>
-<li>Files are never merged automatically.</li>
-</ul>
-<p><strong>Allowed:</strong> <code>report.pdf</code>, <code>manual.PDF</code></p>
-<p><strong>Rejected:</strong> <code>report.pdf</code>, <code>slides.pptx</code></p>
-</td>
-<td width="50%" valign="top">
-<h3>🛡️ File validation</h3>
-<ul>
-<li>The path exists.</li>
-<li>The path points to a file.</li>
-<li>The extension is on the MVP allowlist.</li>
-<li>The file is no larger than 100 MiB.</li>
-<li>The file can be opened for reading.</li>
-</ul>
-<p>Validation happens before MarkItDown receives the document.</p>
-</td>
-</tr>
-</table>
-
-<a id="-architecture"></a>
-
-## 🏗️ Architecture
-
-| Layer | Responsibility | Main components |
-|---|---|---|
-| Core models | Stable application-level results | `ConversionResult`, `FileConversionOutcome`, `BatchConversionResult` |
-| Validation | Reject invalid input early | `validate_file()` |
-| Routing | Select the converter by extension | `ConverterRouter` |
-| Conversion adapter | Isolate the third-party engine | `MarkItDownConverter` |
-| Services | Coordinate batches and export | `BatchConverter`, `MarkdownExporter` |
-| Image extraction | Extract OOXML media and render PDF pages locally | `DocumentImageExtractor` |
-| Media embedding | Resolve source positions, share Base64 payloads, and preserve unplaced media with warnings | `EmbeddedMediaDocumentConverter` |
-| GUI | Desktop interaction | PySide6 window, worker thread supervising disposable parser processes, preview, and export workflow |
-
-### Why an adapter?
-
-`MarkItDownConverter` keeps third-party details behind the project's `BaseConverter` interface. The rest of the application works with its own models instead of depending directly on MarkItDown internals.
-
-This design provides:
-
-- Easier unit testing with fake engines
-- Clear ownership boundaries
-- Lower migration cost if the engine API changes
-- Reusable core logic for the desktop GUI and future integrations
-
-<a id="-project-structure"></a>
-
-## 🗂️ Project Structure
+## Project structure
 
 ```text
-.
-├── src/
-│   └── document_converter/
-│       ├── __main__.py
-│       ├── converters/
-│       │   ├── markitdown_converter.py
-│       │   └── txt_converter.py
-│       ├── core/
-│       │   ├── base_converter.py
-│       │   ├── models.py
-│       │   ├── router.py
-│       │   └── validator.py
-│       ├── gui/
-│       │   ├── app.py
-│       │   ├── main_window.py
-│       │   └── theme.py
-│       ├── embedded_media/
-│       │   ├── converter.py
-│       │   └── extractor.py
-│       └── services/
-│           ├── batch_converter.py
-│           └── markdown_exporter.py
-├── design-system/
-│   └── hybrid-document-to-markdown/
-│       └── MASTER.md
-├── assets/
-│   ├── branding/
-│   │   └── app-logo.png
-│   └── fonts/
-│       ├── PressStart2P-Regular.ttf
-│       ├── PressStart2P-OFL.txt
-│       ├── PressStart2P-FONTLOG.txt
-│       ├── VT323-Regular.ttf
-│       └── VT323-OFL.txt
-├── tests/
-├── tools/audit_conversion_quality.py
-├── docs/CONVERSION_QUALITY_AUDIT.md
-├── CHANGELOG.md
-├── pytest.ini
-├── requirements.in
-├── requirements.txt
-├── THIRD_PARTY_NOTICES.md
-└── README.md
+src/document_converter/
+├── converters/      Format-specific converters (DOCX, PDF, Office, HTML, text)
+├── core/            Models, options, validation, routing, output contract
+├── embedded_media/  Image extraction and Base64 placement
+├── services/        Batch runs, worker process, export
+└── gui/             PySide6 window, pixel theme and widgets
+tests/               Unit, integration, and GUI tests
+tools/               Quality probes and the benchmark gate
+docs/                Acceptance reports and benchmark results
+assets/              Logo and bundled pixel fonts (SIL OFL)
 ```
 
-<a id="-testing"></a>
-
-## 🧪 Testing
-
-The test suite focuses on application behavior and third-party integration boundaries. It does not pretend to test MarkItDown's internal algorithms as original project code.
-
-Q1 baseline: **80 → 92 passed**. Current suite: **247 passed**. The final Q6 corpus passes **303/303 checks in 42 fresh-process runs** across ten formats and four stress cases. Passing these fixtures does not establish fidelity for every possible layout. See [Q3 acceptance](docs/Q3_ACCEPTANCE.md), [Q4 acceptance](docs/Q4_ACCEPTANCE.md), [Q5 evidence](docs/Q5_ACCEPTANCE.md), [Q6 drag-and-drop](docs/Q6_CHECKPOINT_1.md), [Q6-B acceptance](docs/Q6_CHECKPOINT_2.md), and the [Q6 final audit](docs/Q6_FINAL_AUDIT.md).
-
-Run reproducible synthetic probes with `python tools/audit_conversion_quality.py`. The script prints source/output comparisons and removes its temporary fixtures; it is not an accuracy benchmark. See the [audit](docs/CONVERSION_QUALITY_AUDIT.md) for observed losses and the measurement plan.
-
-Run `python tools/evaluate_q5.py --repeat 3 --output docs/benchmarks/q6-final-windows.json` for the current semantic corpus, stress gates, timing and process peak memory. Failed gates return a nonzero exit code. [Recorded Q6 measurements](docs/benchmarks/q6-final-windows.json) contain 42 successful runs; the [Q6 final audit](docs/Q6_FINAL_AUDIT.md) explains the release gate. The older `evaluate_quality.py` remains a small smoke baseline.
-
-<table>
-<tr>
-<td width="50%" valign="top">
-<h3>🔌 Integration coverage</h3>
-<ul>
-<li>All agreed MVP extensions</li>
-<li>Real TXT, DOCX, and text-based PDF conversion</li>
-<li>Real PPTX and XLSX conversion</li>
-<li>Real CSV, HTML/HTM, JSON, and XML conversion</li>
-</ul>
-</td>
-<td width="50%" valign="top">
-<h3>⚙️ Behavior coverage</h3>
-<ul>
-<li>Invalid, oversized, and unreadable files</li>
-<li>Case-insensitive and mixed-extension batches</li>
-<li>Partial failures and result preservation</li>
-<li>Unicode export and overwrite protection</li>
-<li>GUI selection, state, threaded conversion, and export workflow</li>
-<li>OOXML media extraction for DOCX, PPTX, and XLSX</li>
-<li>PDF-page rendering and Base64 data-URI generation</li>
-<li>Real DOCX image embedding through the default router</li>
-</ul>
-</td>
-</tr>
-</table>
-
-Run the full suite with:
+## Testing
 
 ```powershell
 python -m pytest -q
+python tools/evaluate_q5.py --repeat 3 --output docs/benchmarks/q6-final-windows.json
 ```
 
-> [!NOTE]
-> A local passing test badge is shown at the top because this repository does not yet have a GitHub Actions workflow. A live CI badge should replace it after CI is configured.
+The suite covers all ten formats, the GUI workflow, and conversion fidelity. The benchmark converts a generated corpus in fresh processes and exits non-zero if any check fails.
 
-<a id="-privacy-and-limitations"></a>
+## Limitations
 
-## 🔐 Privacy and Limitations
+- Base64 makes files about one third larger than the original images, and not every Markdown viewer or AI chat shows embedded images.
+- Images are preserved, not described. There is no OCR.
+- A batch accepts one file type at a time; files larger than 100 MiB are rejected.
+- Encrypted or damaged files may fail to convert.
+- A packaged installer is not available yet.
 
-<table>
-<tr>
-<td width="50%" valign="top">
-<h3>🔒 Local-first privacy</h3>
-<ul>
-<li>Conversion and image embedding need no API key.</li>
-<li>Documents are not uploaded by the application.</li>
-<li>The application does not configure or use an OCR model, training dataset, or inference runtime.</li>
-<li>Images are encoded locally and remain inside the exported Markdown.</li>
-<li>Users choose whether to upload the result to a third-party AI.</li>
-</ul>
-</td>
-<td width="50%" valign="top">
-<h3>⚠️ Current limitations</h3>
-<ul>
-<li>A packaged <code>.exe</code> is not available yet.</li>
-<li>Not every Markdown renderer or AI chat supports Base64 data URIs.</li>
-<li>Base64 output is larger than the original binary image data.</li>
-<li>The application preserves images but does not interpret diagrams or run OCR.</li>
-<li>Complex layouts may lose fidelity.</li>
-<li>XLSX preserves string identifiers and formulas; numeric values already rounded in Excel cannot be recovered. Formula caches can be absent or stale.</li>
-<li>TXT uses strict explicit decoding. Select another encoding through the API when required.</li>
-<li>CSV includes its original source; ambiguous delimiters require an explicit choice.</li>
-<li>Word/PPTX preserve source image/caption order. Excel uses worksheet/cell anchors; PDF uses page context. Exact inferred caption matching is not provided.</li>
-<li>Media without verified positions falls back to an appendix with warnings. Semantic HTML images may repeat Base64 in standalone Markdown; ZIP export deduplicates them.</li>
-<li>PDF defaults to page images. Optional image extraction may omit masks/vector artwork; text mode omits visuals.</li>
-<li>PDF text defaults to one column; select <code>pdf_columns=2</code> through the API for equal-width two-column pages. Irregular layouts require review.</li>
-<li>Complex tables and footnotes can use semantic HTML; viewer support varies. Diagram metadata preserves source connections, not inferred meaning.</li>
-<li>Resource budgets reject oversized conversions but do not impose a hard process RAM/time limit.</li>
-<li>Default batch/GUI conversion supports active cancellation and a 120-second per-file timeout. Custom injected routers remain cooperative between files. Preview is limited to 200,000 characters; Copy and Save retain all content.</li>
-<li>Worker processes deny Python socket networking. This is not an OS security sandbox or a hard RAM cap. Direct core API calls do not install this guard.</li>
-<li>Encrypted or damaged files may fail.</li>
-<li>The 100 MiB limit is not yet configurable in the GUI.</li>
-</ul>
-</td>
-</tr>
-</table>
+## Roadmap
 
-> [!IMPORTANT]
-> Conversion remains local, but privacy is no longer under this application's control after a user uploads the exported Markdown to ChatGPT, Claude, or another external service.
-
-<a id="-technology-stack"></a>
-
-## 🧰 Technology Stack
-
-| Area | Technology | Current role |
+| Phase | Scope | Status |
 |---|---|---|
-| Language | Python 3.13 | Application and tests |
-| Desktop GUI | PySide6 6.12 | Implemented Phase D workflow |
-| Conversion | Microsoft MarkItDown 0.1.9 + dedicated fidelity paths | Format-specific conversion |
-| Embedded media | Python Base64 + local OOXML/PDF extraction | Preserve images inside one `.md` file |
-| DOCX | Mammoth installed through `markitdown[docx]` | Semantic Word extraction with protected tables/notes |
-| PDF | pdfplumber installed through `markitdown[pdf]` | Page/column text and geometric tables |
-| PowerPoint | python-pptx through `markitdown[pptx]` | PPTX conversion |
-| Excel | openpyxl | Cell values, formulas, cached values and metadata |
-| Testing | pytest | Unit and integration tests |
-| Version control | Git and GitHub | History and collaboration |
-| Target OS | Windows | Development and release target |
+| A–E | Conversion core, desktop app, embedded images | Done |
+| Q1–Q6 | Quality: fidelity, reliability, benchmarks ([final audit](docs/Q6_FINAL_AUDIT.md)) | Done |
+| Q6-C | DOCX fidelity: equations, numbering, headings, alt text | Done |
+| Q7 | Windows installer and GitHub release | Next |
 
-Direct dependencies are declared in `requirements.in`; the reproducible development snapshot is pinned in `requirements.txt`. There is no separate machine-learning dependency layer.
+See [CHANGELOG.md](CHANGELOG.md) for details.
 
-<a id="-roadmap"></a>
+## License
 
-## 🗺️ Roadmap
-
-| Phase | Deliverable | Status |
-|---|---|:---:|
-| Foundation (00–A) | Repository, environment, architecture, TXT learning milestone, and scope/documentation migration | ✅ Completed |
-| B — Engine | MarkItDown integration and initial TXT/DOCX/PDF verification | ✅ Completed |
-| C — Conversion core | All MVP formats, validation, same-extension batches, per-file outcomes, and export | ✅ Completed |
-| D — Desktop GUI | Format selection, drag and drop, threaded conversion, status list, preview, Save Markdown workflow, theme, and branding | ✅ Completed |
-| E — Single-file media preservation | Extract document images and embed them as Base64 data URIs in the same Markdown file | ✅ Completed |
-| Quality Q1 | Architecture audit, synthetic fidelity probes, first whitespace regression fix | ✅ Completed |
-| Quality Q2 | Options/warnings, atomic export, resource safeguards, shared fence/table serializers | Implemented and tested |
-| Quality Q3 | Format fidelity policies and source-backed acceptance; [scope and limits](docs/Q3_ACCEPTANCE.md) | ✅ Completed |
-| Quality Q4 | Source-context media, deduplication, PDF visual modes and portable ZIP; [scope and limits](docs/Q4_ACCEPTANCE.md) | ✅ Completed |
-| Quality Q5 | 205 tests, ten-format semantic corpus, four stress cases, active cancellation, process deadlines and offline checks; [evidence](docs/Q5_ACCEPTANCE.md) | ✅ Completed |
-| Quality Q6 — Fixing, testing, and stabilization | P0–P4 complete: reproducible fixes, PDF table/image mapping, 247 tests, 42 corpus runs, 303/303 checks, and final documentation audit; [final report](docs/Q6_FINAL_AUDIT.md) | ✅ Completed |
-| Quality Q6-C — DOCX fidelity | Preserve OMML equations, table headers, `numbering.xml` lists, heading structure, run spacing, direct formatting overrides, and caption-based alt text; add two-column DOCX regressions | 🚧 WIP |
-| Quality Q7 — Installer and release | Build the Windows installer, verify clean installation and uninstall/update behavior, audit bundled dependencies and licenses, test the packaged worker, document distribution, and prepare the GitHub release | 📋 Planned |
-
-### Phase E result
-
-- Images are embedded automatically; there is no GUI model toggle.
-- DOCX, PPTX, and XLSX media are read directly from their OOXML containers.
-- The GUI extracts PDF raster image objects, maps them to source table cells when geometry is available, and embeds them as data URIs; the API retains full-page rendering mode.
-- PNG, JPEG, GIF, WebP, BMP, TIFF, and SVG are supported.
-- Text and image payloads stay together in one `.md` file.
-- PaddleOCR, model packs, datasets, training scripts, and ML dependencies were removed.
-- Real DOCX image embedding and local PDF rendering are covered by tests.
-
-### Current: Quality Q6-C — DOCX fidelity
-
-Q6 P0–P4 is complete; see the [Q6 final audit](docs/Q6_FINAL_AUDIT.md). A follow-up audit with a real two-column Word template found losses that the Q6 corpus did not cover. Fixes must stay generic: no logic tied to a file name, content, or sample document.
-
-1. ✅ **P0:** convert OMML equations to LaTeX (or a safe fallback) instead of keeping only the equation number.
-2. ✅ **P0:** emit the first table row as the header without an extra empty row.
-3. ✅ **P0:** preserve list numbering and nesting from `numbering.xml`, including custom level text such as `2.%1.` and `[%1]`.
-4. ✅ **P1:** map Word title/heading structure to Markdown headings, including documents without built-in Heading styles.
-5. ✅ **P1:** keep spaces between adjacent runs and honor direct overrides such as `w:b w:val="0"` over character styles.
-6. ✅ **P1:** replace empty or non-meaningful image alt text with the nearest caption or label.
-7. ✅ **P1:** add regression fixtures for two-column DOCX reading order and full-resolution images.
-
-### Next: Quality Q7 — installer and release
-
-1. Build the Windows installer from the pinned environment.
-2. Verify clean installation, conversion worker startup, upgrade, and uninstall behavior.
-3. Generate the final bundled dependency/license inventory and include required notices.
-4. Prepare checksums, distribution documentation, and the GitHub release artifact.
-
-The [implementation report](docs/QUALITY_IMPLEMENTATION.md) distinguishes delivered checkpoints from pending acceptance work. The [original audit](docs/CONVERSION_QUALITY_AUDIT.md) remains the historical baseline. Base64 remains available; advanced modes do not silently change the GUI default.
-
-> [!IMPORTANT]
-> Base64 round-trip preservation is tested for supported extracted media, including a real DOCX PNG and a positioned PDF table image. This does not guarantee that every vector/mask element is extracted, that PDF rasterization is lossless, or that an external AI platform will decode images from an uploaded `.md` file.
-
-Development follows this milestone cycle:
-
-```text
-Implement → Test → Document → Commit → Push
-```
-
-After a phase is complete, the next phase becomes WIP.
-
-<a id="-engineering-principles"></a>
-
-## 🧭 Engineering Principles
-
-- Finish the application before expanding its scope.
-- Prefer simple, testable modules over speculative abstractions.
-- Reuse mature libraries instead of rebuilding their algorithms.
-- Keep local conversion available without cloud credentials.
-- Preserve successful batch results when another file fails.
-- Never claim perfect conversion fidelity.
-- Treat third-party output and errors as integration boundaries.
-- Keep secrets and generated files out of Git.
-- Document implemented and planned features separately.
-
-<a id="-license-and-credits"></a>
-
-## 📜 License and Credits
-
-Original project code and documentation are licensed under the [MIT License](LICENSE), where the contributors own the applicable rights.
-
-Third-party components remain under their own licenses. Review [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the current dependency inventory and release-audit checklist.
-
-### Credits
-
-- [Microsoft MarkItDown](https://github.com/microsoft/markitdown) — document-to-Markdown conversion engine
-- [Qt for Python / PySide6](https://doc.qt.io/qtforpython-6/) — Windows desktop framework
-- [pytest](https://docs.pytest.org/) — automated testing
-
----
-
-<div align="center">
-
-**Built as a practical Python portfolio project with transparent scope, reproducible tests, and local-first design.**
-
-</div>
+Project code is released under the [MIT License](LICENSE). Third-party libraries and the bundled fonts keep their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

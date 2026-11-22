@@ -1,33 +1,42 @@
+# Only project source, tests, docs and bundled assets are committed.
+# Dependencies are installed locally from requirements.txt (see README).
 
-# Python virtual environment
+# Virtual environments
 .venv/
 venv/
+env/
 
-# Python cache
+# Python bytecode and tool caches
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
 .coverage
 htmlcov/
 
-# Environment configuration
-.env
-.env.*
-!.env.example
-
-# IDE files
-.vscode/
-.idea/
-
-# Build artifacts
+# Build and packaging output
 build/
 dist/
 *.egg-info/
 
-# Temporary files
+# Local converter output
+Markdown Output/
+
+# Local environment and editor/agent settings
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+.claude/
+.code-review-graph/
+
+# Logs and temporary files
 *.log
 *.tmp
 
 # Operating system files
 .DS_Store
 Thumbs.db
+desktop.ini

@@ -79,7 +79,6 @@ Default `BatchConverter()` and the GUI run one disposable parser process per fil
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider
 .\.venv\Scripts\python.exe tools\audit_conversion_quality.py
-.\.venv\Scripts\python.exe tools\evaluate_quality.py
 .\.venv\Scripts\python.exe tools\evaluate_q5.py --repeat 3 --output docs/benchmarks/q5-windows.json
 git diff --check
 ```

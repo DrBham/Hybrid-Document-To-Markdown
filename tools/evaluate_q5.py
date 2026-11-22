@@ -1,6 +1,8 @@
 """Reproducible Q5 semantic, offline and bounded stress gates (nonzero on failure)."""
 import argparse
+import ctypes
 import json
+import os
 from pathlib import Path
 import platform
 import statistics
@@ -12,10 +14,28 @@ from time import perf_counter
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "src"), str(ROOT)]
 
-from tools.evaluate_quality import peak_memory
 from tools.q5_corpus import FORMATS, build, check
 
 CASES = (*FORMATS, "stress-txt", "stress-csv", "stress-xlsx", "stress-pdf")
+
+
+def peak_memory():
+    if os.name != "nt":
+        import resource
+        return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * (1 if sys.platform == "darwin" else 1024)
+    from ctypes import wintypes
+    class Counters(ctypes.Structure):
+        _fields_ = [("cb", wintypes.DWORD), ("faults", wintypes.DWORD)] + [
+            (name, ctypes.c_size_t) for name in ("peak", "working", "peak_pool", "pool", "peak_nonpool", "nonpool", "pagefile", "peak_pagefile")]
+    counters = Counters()
+    counters.cb = ctypes.sizeof(counters)
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.GetCurrentProcess.restype = wintypes.HANDLE
+    psapi = ctypes.WinDLL("psapi", use_last_error=True)
+    psapi.GetProcessMemoryInfo.argtypes = [wintypes.HANDLE, ctypes.POINTER(Counters), wintypes.DWORD]
+    if not psapi.GetProcessMemoryInfo(kernel.GetCurrentProcess(), ctypes.byref(counters), counters.cb):
+        raise ctypes.WinError(ctypes.get_last_error())
+    return counters.peak
 
 
 def evaluate(case):

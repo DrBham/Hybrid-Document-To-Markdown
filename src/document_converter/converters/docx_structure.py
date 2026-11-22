@@ -383,114 +383,138 @@ def _replace_with_token(node, token):
     parent.replace(node, replacement)
 
 
+def _replace_equations(root, result):
+    """Swap OMML for tokens; return True when some equation fell back to text."""
+    fell_back = False
+    for node in list(root.iter(m("oMathPara"), m("oMath"))):
+        if node.getparent() is None or _in_fallback(node):
+            continue
+        if node.tag == m("oMath") and any(parent.tag == m("oMathPara") for parent in node.iterancestors()):
+            continue
+        display = node.tag == m("oMathPara")
+        parts = node.findall(m("oMath")) if display else [node]
+        try:
+            latex = " \\\\ ".join(filter(None, (_latex(part) for part in parts)))
+        except Exception:
+            latex = ""
+        token = "HDMMATH" + uuid4().hex.upper()
+        if latex:
+            result.math[token] = ("$$" + latex + "$$") if display else ("$" + latex + "$")
+        else:
+            fallback = _equation_text(node).replace("`", "'")
+            result.math[token] = f"`{fallback}`" if fallback else "[Equation unavailable]"
+            fell_back = True
+        _replace_with_token(node, token)
+    return fell_back
+
+
+def _label_lists(root, numbering, styles, result):
+    """Replace Word numbering with literal label tokens; return ordered labels per paragraph."""
+    labels = {}
+    for paragraph in root.iter(w("p")):
+        if _in_fallback(paragraph):
+            continue
+        properties = paragraph.find(w("pPr"))
+        num = None if properties is None else properties.find(w("numPr"))
+        if num is not None and num.find(w("numId")) is not None:
+            num_id, ilvl = _val(num.find(w("numId"))), _val(num.find(w("ilvl")))
+        else:
+            style = None if properties is None else _val(properties.find(w("pStyle")))
+            num_id, ilvl = styles.numbering(style)
+            if num is not None and num.find(w("ilvl")) is not None:
+                ilvl = _val(num.find(w("ilvl")))
+        if not num_id or num_id == "0":
+            continue
+        level = int(ilvl or "0")
+        label = numbering.next(num_id, level)
+        if label is None:
+            continue
+        if properties is None:
+            properties = etree.Element(w("pPr"))
+            paragraph.insert(0, properties)
+        if num is not None:
+            properties.remove(num)
+        # numId 0 explicitly disables both direct and style-linked numbering.
+        disabled = etree.Element(w("numPr"))
+        etree.SubElement(disabled, w("ilvl")).set(w("val"), "0")
+        etree.SubElement(disabled, w("numId")).set(w("val"), "0")
+        style_node = properties.find(w("pStyle"))
+        properties.insert(0 if style_node is None else properties.index(style_node) + 1, disabled)
+        token = "HDMLIST" + uuid4().hex.upper()
+        result.lists[token] = (label[0], label[1], level, num_id)
+        labels[paragraph] = label[1] if label[0] == "ordered" else ""
+        properties.addnext(_token_run(token))
+    return labels
+
+
+def _apply_bold_overrides(root):
+    """Direct w:b="0" overrides a bold character style such as Strong."""
+    changed = False
+    for run in root.iter(w("r")):
+        properties = run.find(w("rPr"))
+        bold = None if properties is None else properties.find(w("b"))
+        character = None if properties is None else properties.find(w("rStyle"))
+        if bold is not None and character is not None and not _on(bold):
+            properties.remove(character)
+            changed = True
+    return changed
+
+
+def _mark_headings(root, labels, styles):
+    changed = False
+    for paragraph in root.iter(w("p")):
+        if _in_fallback(paragraph) or _in(paragraph, {w("tbl"), w("txbxContent"), w("footnote"), w("endnote")}):
+            continue
+        level = _heading_level(paragraph, labels.get(paragraph, ""), styles)
+        if level is None:
+            continue
+        properties = paragraph.find(w("pPr"))
+        if properties is None:
+            properties = etree.Element(w("pPr"))
+            paragraph.insert(0, properties)
+        style = properties.find(w("pStyle"))
+        if style is None:
+            style = etree.Element(w("pStyle"))
+            properties.insert(0, style)
+        style.set(w("val"), f"HDMHeading{level}")
+        _strip_bold(paragraph, styles)
+        changed = True
+    return changed
+
+
+def _fill_alt_text(root, styles):
+    changed = False
+    for description in root.iter(f"{{{WP}}}docPr"):
+        if _meaningful_alt(description.get("descr")):
+            continue
+        paragraph = next((parent for parent in description.iterancestors() if parent.tag == w("p")), None)
+        caption = None if paragraph is None else _nearby_caption(paragraph, styles)
+        if caption:
+            description.set("descr", caption)
+        elif "descr" in description.attrib:
+            del description.attrib["descr"]
+        else:
+            continue
+        changed = True
+    return changed
+
+
 def analyze_docx(data):
     """Return a rewritten DOCX package when Word structure needs to be exposed."""
     with ZipFile(BytesIO(data)) as archive:
         names = set(archive.namelist())
         if "word/document.xml" not in names:
             return DocxStructure()
-        document = archive.read("word/document.xml")
-        root = _parse(document)
+        root = _parse(archive.read("word/document.xml"))
         numbering = _Numbering(_parse(archive.read("word/numbering.xml")) if "word/numbering.xml" in names else None)
         styles = _Styles(_parse(archive.read("word/styles.xml")) if "word/styles.xml" in names else None)
         result = DocxStructure()
-        warnings = []
 
-        for node in list(root.iter(m("oMathPara"), m("oMath"))):
-            if node.getparent() is None or _in_fallback(node):
-                continue
-            if node.tag == m("oMath") and any(parent.tag == m("oMathPara") for parent in node.iterancestors()):
-                continue
-            display = node.tag == m("oMathPara")
-            parts = node.findall(m("oMath")) if display else [node]
-            try:
-                latex = " \\\\ ".join(filter(None, (_latex(part) for part in parts)))
-            except Exception:
-                latex = ""
-            token = "HDMMATH" + uuid4().hex.upper()
-            if latex:
-                result.math[token] = ("$$" + latex + "$$") if display else ("$" + latex + "$")
-            else:
-                fallback = _equation_text(node).replace("`", "'")
-                result.math[token] = f"`{fallback}`" if fallback else "[Equation unavailable]"
-                warnings.append("Some Word equations could not be converted to LaTeX; their plain text was kept.")
-            _replace_with_token(node, token)
-
-        labels = {}
-        changed = False
-        for paragraph in root.iter(w("p")):
-            if _in_fallback(paragraph):
-                continue
-            properties = paragraph.find(w("pPr"))
-            num = None if properties is None else properties.find(w("numPr"))
-            if num is not None and num.find(w("numId")) is not None:
-                num_id, ilvl = _val(num.find(w("numId"))), _val(num.find(w("ilvl")))
-            else:
-                style = None if properties is None else _val(properties.find(w("pStyle")))
-                num_id, ilvl = styles.numbering(style)
-                if num is not None and num.find(w("ilvl")) is not None:
-                    ilvl = _val(num.find(w("ilvl")))
-            if not num_id or num_id == "0":
-                continue
-            level = int(ilvl or "0")
-            label = numbering.next(num_id, level)
-            if label is None:
-                continue
-            if properties is None:
-                properties = etree.Element(w("pPr"))
-                paragraph.insert(0, properties)
-            if num is not None:
-                properties.remove(num)
-            # numId 0 explicitly disables both direct and style-linked numbering.
-            disabled = etree.Element(w("numPr"))
-            etree.SubElement(disabled, w("ilvl")).set(w("val"), "0")
-            etree.SubElement(disabled, w("numId")).set(w("val"), "0")
-            style_node = properties.find(w("pStyle"))
-            properties.insert(0 if style_node is None else properties.index(style_node) + 1, disabled)
-            token = "HDMLIST" + uuid4().hex.upper()
-            result.lists[token] = (label[0], label[1], level, num_id)
-            labels[paragraph] = label[1] if label[0] == "ordered" else ""
-            properties.addnext(_token_run(token))
-
-        for run in root.iter(w("r")):
-            properties = run.find(w("rPr"))
-            bold = None if properties is None else properties.find(w("b"))
-            character = None if properties is None else properties.find(w("rStyle"))
-            # Direct w:b="0" overrides a bold character style such as Strong.
-            if bold is not None and character is not None and not _on(bold):
-                properties.remove(character)
-                changed = True
-
-        for paragraph in root.iter(w("p")):
-            if _in_fallback(paragraph) or _in(paragraph, {w("tbl"), w("txbxContent"), w("footnote"), w("endnote")}):
-                continue
-            level = _heading_level(paragraph, labels.get(paragraph, ""), styles)
-            if level is None:
-                continue
-            properties = paragraph.find(w("pPr"))
-            if properties is None:
-                properties = etree.Element(w("pPr"))
-                paragraph.insert(0, properties)
-            style = properties.find(w("pStyle"))
-            if style is None:
-                style = etree.Element(w("pStyle"))
-                properties.insert(0, style)
-            style.set(w("val"), f"HDMHeading{level}")
-            _strip_bold(paragraph, styles)
-            changed = True
-
-        for description in root.iter(f"{{{WP}}}docPr"):
-            if _meaningful_alt(description.get("descr")):
-                continue
-            paragraph = next((parent for parent in description.iterancestors() if parent.tag == w("p")), None)
-            caption = None if paragraph is None else _nearby_caption(paragraph, styles)
-            if caption:
-                description.set("descr", caption)
-            elif "descr" in description.attrib:
-                del description.attrib["descr"]
-            else:
-                continue
-            changed = True
+        fell_back = _replace_equations(root, result)
+        labels = _label_lists(root, numbering, styles, result)
+        changed = _apply_bold_overrides(root)
+        changed = _mark_headings(root, labels, styles) or changed
+        changed = _fill_alt_text(root, styles) or changed
 
         if not result.lists and not result.math and not changed:
             return DocxStructure()
@@ -501,7 +525,8 @@ def analyze_docx(data):
                     if info.filename == "word/document.xml" else archive.read(info.filename)
                 target.writestr(info, payload)
         result.package = output.getvalue()
-        result.warnings = tuple(dict.fromkeys(warnings))
+        if fell_back:
+            result.warnings = ("Some Word equations could not be converted to LaTeX; their plain text was kept.",)
         return result
 
 

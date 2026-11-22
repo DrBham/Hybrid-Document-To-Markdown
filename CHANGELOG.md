@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Repository cleanup
+
+- Rewrite the README as a short, task-focused guide and fix the clone URL.
+- Remove unused legacy modules (`txt_converter`, `markitdown_converter`, `markdown_builder`) and their tests, the superseded `design-system/` notes, `assets/.gitkeep`, and `tools/evaluate_quality.py` (its memory probe now lives in `tools/evaluate_q5.py`).
+- Split long functions in the DOCX preprocessor and GUI window into named steps; share one preview reset in the GUI.
+- Ignore virtual environments, caches, local converter output, and editor/agent folders so only project files are committed.
+
 ## Unreleased — Pixel GUI refresh
 
 - Restyle the desktop app with square bevelled pixel buttons that visibly press, hard-shadow cards with corner rivets, square scrollbars, segmented progress, and parchment pixel tooltips.

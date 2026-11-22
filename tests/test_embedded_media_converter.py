@@ -1,6 +1,5 @@
 import base64
 import re
-from pathlib import Path
 
 import pytest
 from docx import Document

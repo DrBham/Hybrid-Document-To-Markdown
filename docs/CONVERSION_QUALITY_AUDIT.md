@@ -1,5 +1,7 @@
 # Audit kualitas konversi — 10 November 2026
 
+> Catatan historis: modul `markitdown_converter.py`, `txt_converter.py`, dan `markdown_builder.py` yang disebut di bawah sudah dihapus pada pembersihan kode 2026-11-23.
+
 Audit ini memisahkan **perilaku yang direproduksi**, **risiko dari pembacaan kode**, dan **kemampuan yang belum diuji**. Semua contoh menggunakan data sintetis. Ini bukan klaim bahwa semua format sudah lossless atau aman terhadap semua dokumen tidak tepercaya.
 
 ## 1. Arsitektur saat ini
