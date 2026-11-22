@@ -137,3 +137,112 @@ def test_style_linked_numbering_is_labelled(tmp_path):
         document.add_paragraph(value, style="Numbered Heading")
     markdown = convert(document, tmp_path / "styled.docx").markdown
     assert "I. Scope" in markdown and "II. Results" in markdown
+
+
+# --- Q6-C P1: headings, run spacing, formatting overrides, alt text, columns ---
+
+
+def bold_paragraph(document, value, style=None):
+    paragraph = document.add_paragraph(style=style)
+    paragraph.add_run(value).bold = True
+    return paragraph
+
+
+def test_headings_without_word_heading_styles(tmp_path):
+    document = Document()
+    document.add_paragraph("Study Title", style="Title")
+    add_numbering(document, 95, [("decimal", "%1.", 1), ("decimal", "%1.%2.", 1)], 951)
+    numbered(document, "", 951).add_run("INTRODUCTION").bold = True
+    document.add_paragraph("Body.")
+    numbered(document, "", 951, 1).add_run("Data Sources").bold = True
+    bold_paragraph(document, "REFERENCES")
+    numbered(document, "", 951).add_run("Ordinary bold item").bold = True
+    bold_paragraph(document, "THIS LONG BOLD UPPERCASE NOTICE KEEPS GOING FOR MORE THAN EIGHT WORDS")
+    outline = document.add_paragraph("Appendix overview")
+    outline._p.get_or_add_pPr().append(parse_xml(f'<w:outlineLvl {nsdecls("w")} w:val="1"/>'))
+    result = convert(document, tmp_path / "headings.docx")
+    markdown = result.markdown
+    for line in ["# Study Title", "## 1. INTRODUCTION", "### 1.1. Data Sources", "## REFERENCES", "## Appendix overview"]:
+        assert re.search(rf"^{re.escape(line)}$", markdown, re.M), line
+    assert re.search(r"^2\. \*\*Ordinary bold item\*\*$", markdown, re.M)
+    assert not re.search(r"^#+ THIS LONG", markdown, re.M)
+    assert not any("HDMHeading" in warning for warning in result.warnings)
+
+
+def test_whitespace_runs_keep_words_apart(tmp_path):
+    document = Document()
+    paragraph = document.add_paragraph("Before ")
+    for value in ("Sample", " ", "Figure"):
+        paragraph.add_run(value).bold = True
+    markdown = convert(document, tmp_path / "spacing.docx").markdown
+    assert "SampleFigure" not in markdown
+    assert re.search(r"\*\*Sample\*\* ?\*\*Figure\*\*|\*\*Sample Figure\*\*", markdown)
+
+
+def test_direct_bold_off_overrides_strong_style(tmp_path):
+    document = Document()
+    paragraph = document.add_paragraph()
+    plain = paragraph.add_run("Author, A. ")
+    plain.style = "Strong"
+    plain.bold = False
+    paragraph.add_run("Title").bold = True
+    markdown = convert(document, tmp_path / "strong.docx").markdown
+    assert "Author, A. **Title**" in markdown
+
+
+def png_bytes(width, height):
+    from io import BytesIO
+    from PIL import Image
+    buffer = BytesIO()
+    Image.new("RGB", (width, height), (40, 120, 200)).save(buffer, "PNG")
+    return buffer.getvalue()
+
+
+def picture(document, path, descr=None):
+    document.add_picture(str(path))
+    properties = document.paragraphs[-1]._p.xpath(".//wp:docPr")[0]
+    if descr is None:
+        properties.attrib.pop("descr", None)
+    else:
+        properties.set("descr", descr)
+
+
+def alt_texts(markdown):
+    return re.findall(r"!\[([^\]]*)\]", markdown)
+
+
+def test_image_alt_text_uses_nearest_caption(tmp_path):
+    image = tmp_path / "pixel.png"
+    image.write_bytes(png_bytes(8, 8))
+    document = Document()
+    picture(document, image, "㿷᛿॰")
+    document.add_paragraph("Figure 2: Network map")
+    document.add_paragraph("Unrelated body text.")
+    picture(document, image, "Sales chart")
+    document.add_paragraph("Body text only.")
+    picture(document, image, "")
+    document.add_paragraph("No caption here.")
+    alts = alt_texts(convert(document, tmp_path / "alt.docx").markdown)
+    assert alts[:3] == ["Figure 2: Network map", "Sales chart", "Word document image"]
+
+
+def test_two_column_docx_keeps_order_and_full_resolution_image(tmp_path):
+    import base64
+    original = png_bytes(2400, 1600)
+    image = tmp_path / "large.png"
+    image.write_bytes(original)
+    document = Document()
+    document.add_paragraph("Column one start")
+    picture(document, image)
+    document.add_paragraph("Figure 1. Large chart")
+    document.add_paragraph("Column one end")
+    document.add_paragraph("Column two start")
+    document.add_paragraph("Column two end")
+    columns = document.sections[0]._sectPr
+    columns.append(parse_xml(f'<w:cols {nsdecls("w")} w:num="2" w:space="720"/>'))
+    markdown = convert(document, tmp_path / "columns.docx").markdown
+    order = ["Column one start", "Figure 1. Large chart", "Column one end", "Column two start", "Column two end"]
+    positions = [markdown.index(value) for value in order]
+    assert positions == sorted(positions)
+    payloads = re.findall(r"data:image/png;base64,([A-Za-z0-9+/=]+)", markdown)
+    assert [base64.b64decode(payload) for payload in payloads] == [original]

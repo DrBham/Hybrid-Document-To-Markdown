@@ -5,6 +5,7 @@ paragraph receives an opaque token; the Markdown pass replaces the tokens after
 HTML-to-Markdown conversion so LaTeX and labels are never escaped.
 """
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from io import BytesIO
 from uuid import uuid4
@@ -169,26 +170,175 @@ class DocxStructure:
     warnings: tuple = ()
 
 
-def _style_numbering(styles):
-    """Paragraph style -> (numId, ilvl), following basedOn chains."""
-    if styles is None:
-        return {}
-    direct, parents = {}, {}
-    for style in styles.findall(w("style")):
-        if style.get(w("type")) != "paragraph":
+class _Styles:
+    """Style lookups that follow basedOn chains."""
+
+    def __init__(self, root):
+        self.nodes = {}
+        for style in ([] if root is None else root.findall(w("style"))):
+            self.nodes[(style.get(w("type")), style.get(w("styleId")))] = style
+
+    def chain(self, kind, style_id):
+        for _ in range(20):
+            style = self.nodes.get((kind, style_id))
+            if style is None:
+                return
+            yield style
+            style_id = _val(style.find(w("basedOn")))
+
+    def name(self, style_id):
+        style = self.nodes.get(("paragraph", style_id))
+        return "" if style is None else (_val(style.find(w("name")), "") or "").lower()
+
+    def numbering(self, style_id):
+        for style in self.chain("paragraph", style_id):
+            num = style.find(f"{w('pPr')}/{w('numPr')}")
+            if num is not None and num.find(w("numId")) is not None:
+                return _val(num.find(w("numId"))), _val(num.find(w("ilvl")))
+        return None, None
+
+    def outline(self, style_id):
+        for style in self.chain("paragraph", style_id):
+            node = style.find(f"{w('pPr')}/{w('outlineLvl')}")
+            if node is not None:
+                return int(_val(node, "9"))
+        return None
+
+    def bold(self, kind, style_id):
+        for style in self.chain(kind, style_id):
+            node = style.find(f"{w('rPr')}/{w('b')}")
+            if node is not None:
+                return _on(node)
+        return None
+
+
+def _on(node):
+    return _val(node, "1") not in {"0", "false", "off"}
+
+
+WP = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+CAPTION = re.compile(r"^\s*[^\W\d_]{2,20}\.?\s+(?:\d+|[IVXLC]+)(?:[.\-–]\d+)*\s*[.:\-–]", re.I)
+NUMERIC_LABEL = re.compile(r"\d+(?:\.\d+)*\.?")
+
+
+def _texts(paragraph):
+    return [node for node in paragraph.iter(w("t")) if not TOKEN.fullmatch(node.text or "")]
+
+
+def _paragraph_text(paragraph):
+    return re.sub(r"\s+", " ", "".join(node.text or "" for node in _texts(paragraph))).strip()
+
+
+def _run_bold(run, paragraph_style, styles):
+    properties = run.find(w("rPr"))
+    if properties is not None:
+        if properties.find(w("b")) is not None:
+            return _on(properties.find(w("b")))
+        character = _val(properties.find(w("rStyle")))
+        if character and styles.bold("character", character) is not None:
+            return styles.bold("character", character)
+    return bool(styles.bold("paragraph", paragraph_style))
+
+
+def _fully_bold(paragraph, paragraph_style, styles):
+    runs = [node.getparent() for node in _texts(paragraph) if (node.text or "").strip()]
+    return bool(runs) and all(run.tag == w("r") and _run_bold(run, paragraph_style, styles) for run in runs)
+
+
+def _meaningful_alt(text):
+    """Reject empty alt text and short mixed-script noise from broken encoders."""
+    counts = {}
+    for character in (text or "").strip():
+        if unicodedata.category(character) in {"Cn", "Co", "Cs"}:
+            return False
+        if character.isalnum():
+            try:
+                script = unicodedata.name(character).split()[0]
+            except ValueError:
+                return False
+            counts[script] = counts.get(script, 0) + 1
+    return max(counts.values(), default=0) >= 2
+
+
+def _is_caption(paragraph, styles):
+    properties = paragraph.find(w("pPr"))
+    style = None if properties is None else _val(properties.find(w("pStyle")))
+    if "caption" in styles.name(style) or "caption" in (style or "").lower():
+        return True
+    fields = [node.text or "" for node in paragraph.iter(w("instrText"))] + \
+             [node.get(w("instr"), "") for node in paragraph.iter(w("fldSimple"))]
+    return any(re.match(r"\s*SEQ\b", field) for field in fields) or bool(CAPTION.match(_paragraph_text(paragraph)))
+
+
+def _nearby_caption(paragraph, styles):
+    """Nearest caption: the image paragraph, then up to two text paragraphs after, then before."""
+    candidates = [paragraph]
+    for preceding in (False, True):
+        found = 0
+        for sibling in paragraph.itersiblings(preceding=preceding):
+            if sibling.tag != w("p"):
+                break
+            if _paragraph_text(sibling):
+                candidates.append(sibling)
+                found += 1
+                if found == 2:
+                    break
+    for candidate in candidates:
+        text = _paragraph_text(candidate)
+        if text and _is_caption(candidate, styles):
+            return text[:250]
+    return None
+
+
+def _heading_level(paragraph, label, styles):
+    """Infer Markdown heading levels for Word documents without heading styles."""
+    properties = paragraph.find(w("pPr"))
+    style = None if properties is None else _val(properties.find(w("pStyle")))
+    name = styles.name(style)
+    if re.fullmatch(r"heading [1-9]", name):
+        return None  # Mammoth already maps built-in headings.
+    text = _paragraph_text(paragraph)
+    if not text:
+        return None
+    outline = None if properties is None else properties.find(w("outlineLvl"))
+    outline = int(_val(outline, "9")) if outline is not None else styles.outline(style)
+    if outline is not None and 0 <= outline <= 5:
+        return outline + 1
+    if len(text) > 120 or len(text.split()) > 12 or text.endswith((".", ":", ";", ",")):
+        return None
+    title = name == "title"
+    emphasized = title or _fully_bold(paragraph, style, styles)
+    if label and NUMERIC_LABEL.fullmatch(label) and emphasized:
+        depth = len(label.rstrip(".").split("."))
+        if depth > 1 or text.isupper() or title:
+            return min(depth + 1, 6)
+        return None
+    if label:
+        return None
+    if title:
+        return 1
+    if emphasized and text.isupper() and len(text.split()) <= 8:
+        return 2
+    return None
+
+
+def _strip_bold(paragraph, styles):
+    for run in paragraph.iter(w("r")):
+        properties = run.find(w("rPr"))
+        if properties is None:
             continue
-        style_id = style.get(w("styleId"))
-        parents[style_id] = _val(style.find(w("basedOn")))
-        num = style.find(f"{w('pPr')}/{w('numPr')}")
-        if num is not None:
-            direct[style_id] = (_val(num.find(w("numId"))), _val(num.find(w("ilvl"))))
+        for node in properties.findall(w("b")) + properties.findall(w("bCs")):
+            properties.remove(node)
+        character = properties.find(w("rStyle"))
+        if character is not None and styles.bold("character", _val(character)):
+            properties.remove(character)
 
-    def resolve(style_id, depth=0):
-        if style_id is None or depth > 20:
-            return None
-        return direct.get(style_id) or resolve(parents.get(style_id), depth + 1)
 
-    return {style_id: resolve(style_id) for style_id in parents if resolve(style_id)}
+def _in(node, tags):
+    return any(parent.tag in tags for parent in node.iterancestors())
+
+
+HEADING_STYLE_MAP = "\n".join(f"p.HDMHeading{level} => h{level}:fresh" for level in range(1, 7))
 
 
 def _token_run(token):
@@ -234,7 +384,7 @@ def _replace_with_token(node, token):
 
 
 def analyze_docx(data):
-    """Return a rewritten DOCX package when equations or numbered paragraphs exist."""
+    """Return a rewritten DOCX package when Word structure needs to be exposed."""
     with ZipFile(BytesIO(data)) as archive:
         names = set(archive.namelist())
         if "word/document.xml" not in names:
@@ -242,7 +392,7 @@ def analyze_docx(data):
         document = archive.read("word/document.xml")
         root = _parse(document)
         numbering = _Numbering(_parse(archive.read("word/numbering.xml")) if "word/numbering.xml" in names else None)
-        styles = _style_numbering(_parse(archive.read("word/styles.xml")) if "word/styles.xml" in names else None)
+        styles = _Styles(_parse(archive.read("word/styles.xml")) if "word/styles.xml" in names else None)
         result = DocxStructure()
         warnings = []
 
@@ -266,6 +416,8 @@ def analyze_docx(data):
                 warnings.append("Some Word equations could not be converted to LaTeX; their plain text was kept.")
             _replace_with_token(node, token)
 
+        labels = {}
+        changed = False
         for paragraph in root.iter(w("p")):
             if _in_fallback(paragraph):
                 continue
@@ -275,7 +427,7 @@ def analyze_docx(data):
                 num_id, ilvl = _val(num.find(w("numId"))), _val(num.find(w("ilvl")))
             else:
                 style = None if properties is None else _val(properties.find(w("pStyle")))
-                num_id, ilvl = styles.get(style, (None, None))
+                num_id, ilvl = styles.numbering(style)
                 if num is not None and num.find(w("ilvl")) is not None:
                     ilvl = _val(num.find(w("ilvl")))
             if not num_id or num_id == "0":
@@ -297,9 +449,50 @@ def analyze_docx(data):
             properties.insert(0 if style_node is None else properties.index(style_node) + 1, disabled)
             token = "HDMLIST" + uuid4().hex.upper()
             result.lists[token] = (label[0], label[1], level, num_id)
+            labels[paragraph] = label[1] if label[0] == "ordered" else ""
             properties.addnext(_token_run(token))
 
-        if not result.lists and not result.math:
+        for run in root.iter(w("r")):
+            properties = run.find(w("rPr"))
+            bold = None if properties is None else properties.find(w("b"))
+            character = None if properties is None else properties.find(w("rStyle"))
+            # Direct w:b="0" overrides a bold character style such as Strong.
+            if bold is not None and character is not None and not _on(bold):
+                properties.remove(character)
+                changed = True
+
+        for paragraph in root.iter(w("p")):
+            if _in_fallback(paragraph) or _in(paragraph, {w("tbl"), w("txbxContent"), w("footnote"), w("endnote")}):
+                continue
+            level = _heading_level(paragraph, labels.get(paragraph, ""), styles)
+            if level is None:
+                continue
+            properties = paragraph.find(w("pPr"))
+            if properties is None:
+                properties = etree.Element(w("pPr"))
+                paragraph.insert(0, properties)
+            style = properties.find(w("pStyle"))
+            if style is None:
+                style = etree.Element(w("pStyle"))
+                properties.insert(0, style)
+            style.set(w("val"), f"HDMHeading{level}")
+            _strip_bold(paragraph, styles)
+            changed = True
+
+        for description in root.iter(f"{{{WP}}}docPr"):
+            if _meaningful_alt(description.get("descr")):
+                continue
+            paragraph = next((parent for parent in description.iterancestors() if parent.tag == w("p")), None)
+            caption = None if paragraph is None else _nearby_caption(paragraph, styles)
+            if caption:
+                description.set("descr", caption)
+            elif "descr" in description.attrib:
+                del description.attrib["descr"]
+            else:
+                continue
+            changed = True
+
+        if not result.lists and not result.math and not changed:
             return DocxStructure()
         output = BytesIO()
         with ZipFile(output, "w", ZIP_DEFLATED) as target:

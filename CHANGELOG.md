@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Q6-C DOCX P1 fidelity (2026-11-22)
+
+- Map Word structure to Markdown headings when built-in Heading styles are absent: outline levels, Title, bold numeric labels (`2.1.` becomes a level-3 heading), and short bold uppercase section names.
+- Keep whitespace-only formatted runs so adjacent words such as `Contoh Gambar` stay separated.
+- Honor direct `w:b w:val="0"` over bold character styles such as Strong.
+- Replace empty or noise image alt text with the nearest caption (caption style, SEQ field, or label-number pattern).
+- Add five DOCX regressions, including two-column reading order and byte-identical full-resolution image round-trip; the suite passes 258 tests and the Q5 corpus gate still passes.
+
 ## Unreleased — Q6-C DOCX P0 fidelity (2026-11-22)
 
 - Convert Word OMML equations to inline `$...$` or display `$$...$$` LaTeX, filling OMML default properties the bundled converter requires; unconvertible equations keep their plain text with a warning.

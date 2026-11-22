@@ -5,14 +5,14 @@ from uuid import uuid4
 from dataclasses import replace
 
 import mammoth
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 from markitdown.converters._html_converter import HtmlConverter
 
 from ..core.models import ConversionResult
 from ..core.options import ConversionOptions
 from ..core.serialization import metadata_section
 from ..embedded_media.placement import ImageCollector
-from .docx_structure import analyze_docx, restore_structure
+from .docx_structure import HEADING_STYLE_MAP, analyze_docx, restore_structure
 from .office_structure import presentation_structure
 
 
@@ -72,8 +72,12 @@ class SemanticOfficeConverter:
 
         structure = analyze_docx(source.read_bytes())
         with (BytesIO(structure.package) if structure.package else source.open("rb")) as stream:
-            result = mammoth.convert_to_html(stream, include_embedded_style_map=False, convert_image=collect_image)
+            result = mammoth.convert_to_html(stream, style_map=HEADING_STYLE_MAP, include_embedded_style_map=False, convert_image=collect_image)
         soup = BeautifulSoup(result.value, "html.parser")
+        # Markdown writers drop whitespace-only emphasis, which glues adjacent words.
+        for node in soup.find_all(["strong", "em", "b", "i", "u", "s", "sup", "sub"]):
+            if node.parent is not None and not node.find("img") and node.get_text() and not node.get_text().strip():
+                node.replace_with(NavigableString(node.get_text()))
         for index, item in enumerate(images.images):
             node = soup.find("img", src=item.token)
             if node is not None:
@@ -103,7 +107,8 @@ class SemanticOfficeConverter:
         for token, html in reversed(list(protected.items())):
             markdown = markdown.replace(token, html if token.startswith("OFFICEREFERENCE") else "\n\n" + html + "\n\n")
         markdown = restore_structure(markdown, structure)
-        warnings = tuple(dict.fromkeys(message.message for message in result.messages)) + structure.warnings
+        # Synthetic heading styles are internal and intentionally absent from styles.xml.
+        warnings = tuple(dict.fromkeys(message.message for message in result.messages if "HDMHeading" not in message.message)) + structure.warnings
         if protected:
             warnings += ("Complex tables/notes use semantic HTML to retain merged cells and reference anchors.",)
         return ConversionResult(source, "docx", markdown, warnings, inline_images=tuple(images.images))

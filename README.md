@@ -7,7 +7,7 @@
 ### A local-first Windows desktop converter powered by Python and Microsoft MarkItDown
 
 [![Development Status](https://img.shields.io/badge/status-Quality%20Q6--C%20DOCX%20WIP-D97706?style=for-the-badge)](#-roadmap)
-[![Tests](https://img.shields.io/badge/tests-253%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
+[![Tests](https://img.shields.io/badge/tests-258%20passed-16A34A?style=for-the-badge&logo=pytest&logoColor=white)](#-testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](#-technology-stack)
 
 [![MarkItDown](https://img.shields.io/badge/MarkItDown-0.1.9-2563EB?style=flat-square)](https://github.com/microsoft/markitdown)
@@ -572,10 +572,10 @@ Q6 P0–P4 is complete; see the [Q6 final audit](docs/Q6_FINAL_AUDIT.md). A foll
 1. ✅ **P0:** convert OMML equations to LaTeX (or a safe fallback) instead of keeping only the equation number.
 2. ✅ **P0:** emit the first table row as the header without an extra empty row.
 3. ✅ **P0:** preserve list numbering and nesting from `numbering.xml`, including custom level text such as `2.%1.` and `[%1]`.
-4. **P1:** map Word title/heading structure to Markdown headings, including documents without built-in Heading styles.
-5. **P1:** keep spaces between adjacent runs and honor direct overrides such as `w:b w:val="0"` over character styles.
-6. **P1:** replace empty or non-meaningful image alt text with the nearest caption or label.
-7. **P1:** add regression fixtures for two-column DOCX reading order and full-resolution images.
+4. ✅ **P1:** map Word title/heading structure to Markdown headings, including documents without built-in Heading styles.
+5. ✅ **P1:** keep spaces between adjacent runs and honor direct overrides such as `w:b w:val="0"` over character styles.
+6. ✅ **P1:** replace empty or non-meaningful image alt text with the nearest caption or label.
+7. ✅ **P1:** add regression fixtures for two-column DOCX reading order and full-resolution images.
 
 ### Next: Quality Q7 — installer and release
 
