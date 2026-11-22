@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -56,7 +57,15 @@ from ..core.options import ConversionOptions
 from ..core.validator import SUPPORTED_FORMATS
 from ..services.batch_converter import BatchConverter
 from ..services.markdown_exporter import MarkdownExporter
-from .pixel_widgets import MarkdownHighlighter, PixelCard, Toast, WorkflowSteps, set_status
+from .pixel_widgets import (
+    MarkdownHighlighter,
+    PixelBackground,
+    PixelCard,
+    Toast,
+    WorkflowSteps,
+    add_press_shadow,
+    set_status,
+)
 from .theme import APP_LOGO_PATH, APP_STYLESHEET, load_theme_fonts
 
 
@@ -64,6 +73,19 @@ FILE_FILTER = (
     "Supported documents "
     "(*.txt *.docx *.pdf *.pptx *.xlsx *.csv *.html *.htm *.json *.xml)"
 )
+
+# Base64 payloads are kept intact on Copy/Save but shortened on screen: one
+# image is a single line tens of thousands of characters wide.
+_DATA_URI = re.compile(r"(data:[\w.+-]+/[\w.+-]+;base64,)([A-Za-z0-9+/=]{120,})")
+
+
+def compact_embedded_media(markdown: str) -> str:
+    def shorten(match: re.Match) -> str:
+        size_kib = len(match.group(2)) * 3 / 4 / 1024
+        return f"{match.group(1)}{match.group(2)[:24]}… [embedded image, {size_kib:.1f} KiB — saved in full]"
+
+    return _DATA_URI.sub(shorten, markdown)
+
 
 FORMAT_OPTIONS = (
     ("Text document (.txt)", (".txt",)),
@@ -322,7 +344,7 @@ class MainWindow(QMainWindow):
         self._update_actions()
 
     def _build_ui(self) -> None:
-        root = QWidget()
+        root = PixelBackground()
         root.setObjectName("appRoot")
         self.setCentralWidget(root)
 
@@ -577,7 +599,8 @@ class MainWindow(QMainWindow):
             "row to inspect its result."
         )
         self.preview.setAccessibleName("Markdown preview")
-        self.preview.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
+        # Wrapping is visual only; the saved Markdown keeps its own line breaks.
+        self.preview.setLineWrapMode(QPlainTextEdit.LineWrapMode.WidgetWidth)
         self.preview.setHorizontalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAsNeeded
         )
@@ -598,9 +621,23 @@ class MainWindow(QMainWindow):
         self.preview_summary.setObjectName("summaryLabel")
 
         layout.addLayout(header)
+        self.warnings_button = QPushButton()
+        self.warnings_button.setObjectName("warningChip")
+        self.warnings_button.setAccessibleName("Show conversion warnings")
+        self.warnings_button.setToolTip(
+            "The file converted; these notes point to parts worth a quick check"
+        )
+        self.warnings_button.clicked.connect(self._show_warnings)
+        self.warnings_button.hide()
+        self._preview_warnings: tuple[str, ...] = ()
+
+        footer = QHBoxLayout()
+        footer.addWidget(self.preview_summary, stretch=1)
+        footer.addWidget(self.warnings_button)
+
         layout.addWidget(self.preview_file)
         layout.addWidget(self.preview, stretch=1)
-        layout.addWidget(self.preview_summary)
+        layout.addLayout(footer)
         return card
 
     def _connect_signals(self) -> None:
@@ -619,6 +656,7 @@ class MainWindow(QMainWindow):
         pointer = QCursor(Qt.CursorShape.PointingHandCursor)
         for button in self.findChildren(QPushButton):
             button.setCursor(pointer)
+            add_press_shadow(button, 2 if button is self.warnings_button else 4)
         for combo_box in self.findChildren(QComboBox):
             combo_box.setCursor(pointer)
         self.file_tree.viewport().setCursor(pointer)
@@ -809,6 +847,7 @@ class MainWindow(QMainWindow):
         self.preview.clear()
         self.preview_file.setText("Select a converted file")
         self.preview_summary.setText("No conversion result yet")
+        self._set_preview_warnings(())
         self._update_actions()
 
     @Slot()
@@ -866,7 +905,10 @@ class MainWindow(QMainWindow):
             item = self._items[self._path_key(outcome.source_path)]
             if outcome.succeeded:
                 set_status(item, "Converted with warnings" if outcome.result.warnings else "Converted")
-                item.setToolTip(3, "\n".join(outcome.result.warnings))
+                item.setToolTip(3, (
+                    "Converted. Notes worth a quick check (not errors):\n"
+                    + "\n".join(outcome.result.warnings)
+                ) if outcome.result.warnings else "")
             else:
                 set_status(item, "Failed")
                 item.setToolTip(3, outcome.error or "Conversion failed")
@@ -937,23 +979,43 @@ class MainWindow(QMainWindow):
         self._set_preview_filename(path)
         self.preview.clear()
         self.preview_summary.setText("Not converted yet")
+        self._set_preview_warnings(())
 
     def _display_outcome(self, outcome: FileConversionOutcome) -> None:
         self._set_preview_filename(outcome.source_path)
         if outcome.succeeded and outcome.result is not None:
             preview_limit = 200_000
-            self.preview.setPlainText(outcome.result.markdown[:preview_limit])
+            shown = compact_embedded_media(outcome.result.markdown)
+            self.preview.setPlainText(shown[:preview_limit])
             lines = outcome.result.markdown.count("\n") + 1
             characters = len(outcome.result.markdown)
             self.preview_summary.setText(
-                f"{lines} lines · {characters} characters"
-                + (" · Preview shortened; Copy and Save retain full content" if characters > preview_limit else "")
-                + (f" · {len(outcome.result.warnings)} warning(s)" if outcome.result.warnings else "")
+                f"{lines} lines · {characters:,} characters"
+                + (" · Preview shortened; Copy and Save retain full content" if len(shown) > preview_limit else "")
             )
-            self.preview_summary.setToolTip("\n".join(outcome.result.warnings))
+            self._set_preview_warnings(outcome.result.warnings)
         else:
             self.preview.setPlainText(outcome.error or "Conversion failed")
             self.preview_summary.setText("Conversion failed — review the message")
+            self._set_preview_warnings(())
+
+    def _set_preview_warnings(self, warnings: tuple[str, ...]) -> None:
+        self._preview_warnings = tuple(warnings)
+        count = len(self._preview_warnings)
+        self.warnings_button.setText(f"{count} warning{'s' if count != 1 else ''}")
+        self.warnings_button.setVisible(bool(count))
+
+    @Slot()
+    def _show_warnings(self) -> None:
+        if not self._preview_warnings:
+            return
+        QMessageBox.information(
+            self,
+            "Conversion warnings",
+            "The file was converted and can be saved. These notes point to parts "
+            "worth a quick check; they are not errors.\n\n"
+            + "\n".join(f"• {warning}" for warning in self._preview_warnings),
+        )
 
     def _set_preview_filename(self, path: Path) -> None:
         """Show a long unspaced filename without clipping the preview header."""
@@ -1165,6 +1227,7 @@ class MainWindow(QMainWindow):
         self.preview.clear()
         self.preview_file.setText("Select a converted file")
         self.preview_summary.setText("No conversion result yet")
+        self._set_preview_warnings(())
 
     def _show_error(self, message: str) -> None:
         self.error_banner.setText(message)

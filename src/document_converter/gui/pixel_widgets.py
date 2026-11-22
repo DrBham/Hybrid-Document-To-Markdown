@@ -4,18 +4,57 @@ from __future__ import annotations
 
 import re
 
-from PySide6.QtCore import QRect, Qt, QTimer
+from PySide6.QtCore import QPointF, QRect, Qt, QTimer
 from PySide6.QtGui import (
     QBrush,
     QColor,
     QFont,
     QPainter,
+    QPixmap,
     QSyntaxHighlighter,
     QTextCharFormat,
 )
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QTreeWidgetItem, QWidget
+from PySide6.QtWidgets import (
+    QAbstractButton,
+    QFrame,
+    QGraphicsDropShadowEffect,
+    QHBoxLayout,
+    QLabel,
+    QTreeWidgetItem,
+    QWidget,
+)
 
 from .theme import COLORS
+
+
+class PixelBackground(QWidget):
+    """Window background with a subtle 8 px checker dither."""
+
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        tile = QPixmap(8, 8)
+        tile.fill(QColor(COLORS["background"]))
+        painter = QPainter(tile)
+        painter.fillRect(0, 0, 4, 4, QColor(COLORS["dither"]))
+        painter.fillRect(4, 4, 4, 4, QColor(COLORS["dither"]))
+        painter.end()
+        self._brush = QBrush(tile)
+
+    def paintEvent(self, event) -> None:  # noqa: N802 - Qt override
+        painter = QPainter(self)
+        painter.fillRect(event.rect(), self._brush)
+        painter.end()
+
+
+def add_press_shadow(button: QAbstractButton, offset: int = 4) -> None:
+    """Give a button a hard pixel shadow that collapses while it is pressed."""
+    shadow = QGraphicsDropShadowEffect(button)
+    shadow.setBlurRadius(0)
+    shadow.setColor(QColor(COLORS["shadow"]))
+    shadow.setOffset(offset, offset)
+    button.setGraphicsEffect(shadow)
+    button.pressed.connect(lambda: shadow.setOffset(QPointF(1, 1)))
+    button.released.connect(lambda: shadow.setOffset(QPointF(offset, offset)))
 
 
 class PixelCard(QFrame):
@@ -152,7 +191,6 @@ class MarkdownHighlighter(QSyntaxHighlighter):
 
         self.heading = style(COLORS["primary"], bold=True)
         self.rules = [
-            (re.compile(r"^\s*(?:[-*+]|\d+[.)])\s"), style(COLORS["success_text"])),
             (re.compile(r"^\|.*\|\s*$"), style(COLORS["table_text"])),
             (re.compile(r"\*\*[^*\n]+\*\*"), style(COLORS["strong_text"], bold=True)),
             (re.compile(r"(?<![*\w])\*[^*\n]+\*(?!\*)"), style(COLORS["muted_foreground"], italic=True)),
@@ -161,6 +199,8 @@ class MarkdownHighlighter(QSyntaxHighlighter):
             (re.compile(r"`[^`\n]+`"), style(COLORS["math_text"])),
         ]
         self.dim = style(COLORS["dim_text"])
+        self.list_item = style(COLORS["success_text"])
+        self.label = style(COLORS["primary_hover"], bold=True)
 
     def highlightBlock(self, text: str) -> None:  # noqa: N802 - Qt override
         if len(text) > self.MAX_LINE or text.startswith("[hybrid-media-"):
@@ -172,6 +212,11 @@ class MarkdownHighlighter(QSyntaxHighlighter):
         if re.match(r"^\s*(?:\|\s*:?-{3,}:?\s*)+\|\s*$|^-{3,}\s*$|^<!--", text):
             self.setFormat(0, len(text), self.dim)
             return
+        marker = re.match(r"^(\s*(?:[-*+]|\d+[.)]|[a-z][.)]|\[\d+\]|\d+(?:\.\d+)+\.?))\s", text)
+        if marker:
+            # The whole item reads as one unit; its label stands out.
+            self.setFormat(0, len(text), self.list_item)
+            self.setFormat(0, len(marker.group(1)), self.label)
         for pattern, fmt in self.rules:
             for match in pattern.finditer(text):
                 self.setFormat(match.start(), match.end() - match.start(), fmt)

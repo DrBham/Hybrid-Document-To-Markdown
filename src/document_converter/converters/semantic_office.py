@@ -108,7 +108,13 @@ class SemanticOfficeConverter:
             markdown = markdown.replace(token, html if token.startswith("OFFICEREFERENCE") else "\n\n" + html + "\n\n")
         markdown = restore_structure(markdown, structure)
         # Synthetic heading styles are internal and intentionally absent from styles.xml.
-        warnings = tuple(dict.fromkeys(message.message for message in result.messages if "HDMHeading" not in message.message)) + structure.warnings
+        # Synthetic heading styles are internal. Unmapped Word style names only
+        # mean "rendered as a normal paragraph/run"; they are not content loss.
+        warnings = tuple(dict.fromkeys(
+            message.message for message in result.messages
+            if "HDMHeading" not in message.message
+            and not message.message.startswith(("Unrecognised paragraph style", "Unrecognised run style"))
+        )) + structure.warnings
         if protected:
             warnings += ("Complex tables/notes use semantic HTML to retain merged cells and reference anchors.",)
         return ConversionResult(source, "docx", markdown, warnings, inline_images=tuple(images.images))

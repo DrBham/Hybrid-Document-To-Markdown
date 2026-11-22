@@ -21,6 +21,7 @@ COLORS = {
     "accent_light": "#B5BDB1",
     "accent_dark": "#4A5248",
     "background": "#171614",
+    "dither": "#1F1D1A",
     "surface": "#211F1C",
     "surface_alt": "#2C2924",
     "surface_hover": "#39342C",
@@ -62,7 +63,7 @@ C = COLORS
 # Qt has no box-shadow, so pixel depth comes from two-tone 3 px bevels: light
 # top/left and dark bottom/right. Pressing swaps them and nudges the label.
 APP_STYLESHEET = f"""
-QMainWindow, QWidget#appRoot {{
+QMainWindow {{
     background-color: {C["background"]};
 }}
 
@@ -81,7 +82,7 @@ QLabel#appTitle {{
 QLabel#sectionTitle {{
     color: {C["primary"]};
     font-family: "Press Start 2P";
-    font-size: 11px;
+    font-size: 12px;
 }}
 
 QLabel#mutedText, QLabel#previewFile, QLabel#summaryLabel {{
@@ -245,6 +246,19 @@ QPushButton#primaryButton:disabled, QPushButton#accentButton:disabled {{
     color: #777166;
 }}
 
+QPushButton#warningChip {{
+    background-color: {C["warning_chip"]};
+    border-color: #E2C77C #6E5A26 #6E5A26 #E2C77C;
+    color: {C["ink"]};
+    font-size: 8px;
+    min-height: 30px;
+    padding: 0 10px;
+}}
+
+QPushButton#warningChip:hover {{
+    background-color: #D6B562;
+}}
+
 QPushButton#copiedButton {{
     background-color: {C["accent"]};
     border-color: {C["accent_light"]} {C["accent_dark"]} {C["accent_dark"]} {C["accent_light"]};
@@ -294,7 +308,7 @@ QLineEdit:focus, QPlainTextEdit:focus, QTreeWidget:focus, QComboBox:focus {{
 
 QPlainTextEdit {{
     font-family: "Consolas";
-    font-size: 13px;
+    font-size: 14px;
     padding: 10px;
 }}
 

@@ -83,7 +83,7 @@ def test_document_panels_show_scrollbars_only_when_needed(window):
     assert window.file_tree.verticalScrollBarPolicy() == as_needed
     assert window.preview.horizontalScrollBarPolicy() == as_needed
     assert window.preview.verticalScrollBarPolicy() == as_needed
-    assert window.preview.lineWrapMode() == QPlainTextEdit.LineWrapMode.NoWrap
+    assert window.preview.lineWrapMode() == QPlainTextEdit.LineWrapMode.WidgetWidth
 
 
 def test_embedded_media_is_automatic_and_model_free(window):
@@ -476,7 +476,29 @@ def test_preview_highlighter_handles_long_embedded_media(window, tmp_path):
     window.add_files([source])
     markdown = "# Title\n\n- item\n\n$x^2$\n\n[hybrid-media-1]: <data:image/png;base64," + "A" * 50_000 + ">"
     window._conversion_finished(_converted_batch(source, markdown))
-    assert window.preview.toPlainText() == markdown
+    shown = window.preview.toPlainText()
+    assert "A" * 200 not in shown
+    assert "embedded image" in shown and "saved in full" in shown
+    window._copy_preview()
+    assert QApplication.clipboard().text() == markdown
     block = window.preview.document().firstBlock()
     formats = block.layout().formats()
     assert formats, "headings should be coloured"
+
+
+def test_warnings_chip_explains_converted_with_warnings(window, tmp_path, monkeypatch):
+    from PySide6.QtWidgets import QMessageBox
+    source = create_files(tmp_path, "report.txt")[0]
+    window.add_files([source])
+    result = ConversionResult(source.resolve(), "txt", "# Report", ("Table kept as HTML",))
+    window._conversion_finished(BatchConversionResult(".txt", (FileConversionOutcome(source.resolve(), result=result),)))
+    assert not window.warnings_button.isHidden()
+    assert window.warnings_button.text() == "1 warning"
+    assert "not errors" in window.file_tree.topLevelItem(0).toolTip(3)
+    shown = {}
+    monkeypatch.setattr(QMessageBox, "information", lambda parent, title, text: shown.update(title=title, text=text))
+    window.warnings_button.click()
+    assert shown["title"] == "Conversion warnings"
+    assert "not errors" in shown["text"] and "Table kept as HTML" in shown["text"]
+    window._clear_files()
+    assert window.warnings_button.isHidden()

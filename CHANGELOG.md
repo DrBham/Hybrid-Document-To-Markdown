@@ -6,7 +6,10 @@
 - Replace the header badge with Add → Convert → Save workflow steps that follow the batch state.
 - Colour file statuses, confirm Copy on the button, and show short pop-up confirmations after conversion and saving.
 - Colour headings, lists, tables, emphasis, and math in the read-only Markdown preview; long embedded image lines stay dim and are not parsed.
-- Add four GUI regressions; the suite passes 262 tests.
+- Wrap the preview to the panel width and shorten embedded Base64 image data on screen only, so there is no long sideways scroll; Copy and Save keep the full file.
+- Add a warnings chip that explains "Converted with warnings" (notes worth a check, not errors) and hide Word style-name notices that do not change the output.
+- Add a subtle checker background and hard button shadows that collapse while pressed; colour whole list items with their labels highlighted.
+- Add five GUI regressions; the suite passes 263 tests.
 
 ## Unreleased — Q6-C DOCX P1 fidelity (2026-11-22)
 
