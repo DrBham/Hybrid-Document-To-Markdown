@@ -1,4 +1,5 @@
 """Semantic Word output and source-backed PowerPoint structures."""
+from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 from dataclasses import replace
@@ -11,7 +12,27 @@ from ..core.models import ConversionResult
 from ..core.options import ConversionOptions
 from ..core.serialization import metadata_section
 from ..embedded_media.placement import ImageCollector
+from .docx_structure import analyze_docx, restore_structure
 from .office_structure import presentation_structure
+
+
+def _promote_header_row(table):
+    """Use a simple Word table's first row as its Markdown header.
+
+    Without <th>, the Markdown table writer invents an empty header row and
+    demotes the real header to data.
+    """
+    if table.find("th") is not None or table.find("table") is not None:
+        return
+    first = table.find("tr")
+    if first is None:
+        return
+    for cell in first.find_all("td", recursive=False):
+        cell.name = "th"
+        # Header cells are already emphasized; drop bold that wraps the whole cell.
+        for strong in cell.find_all(["strong", "b"]):
+            if strong.get_text(strip=True) == cell.get_text(strip=True):
+                strong.unwrap()
 
 
 class SemanticOfficeConverter:
@@ -49,7 +70,8 @@ class SemanticOfficeConverter:
                 data = stream.read()
             return {"src": images.add(data, image.content_type, image.alt_text or "Word document image")}
 
-        with source.open("rb") as stream:
+        structure = analyze_docx(source.read_bytes())
+        with (BytesIO(structure.package) if structure.package else source.open("rb")) as stream:
             result = mammoth.convert_to_html(stream, include_embedded_style_map=False, convert_image=collect_image)
         soup = BeautifulSoup(result.value, "html.parser")
         for index, item in enumerate(images.images):
@@ -74,11 +96,14 @@ class SemanticOfficeConverter:
                 token = "OFFICEBLOCK" + uuid4().hex.upper()
                 protected[token] = str(node)
                 node.replace_with(token)
+        for table in soup.find_all("table"):
+            _promote_header_row(table)
         markdown = HtmlConverter().convert_string(str(soup)).markdown
         # Restore outer blocks before reference tokens captured inside them.
         for token, html in reversed(list(protected.items())):
             markdown = markdown.replace(token, html if token.startswith("OFFICEREFERENCE") else "\n\n" + html + "\n\n")
-        warnings = tuple(dict.fromkeys(message.message for message in result.messages))
+        markdown = restore_structure(markdown, structure)
+        warnings = tuple(dict.fromkeys(message.message for message in result.messages)) + structure.warnings
         if protected:
             warnings += ("Complex tables/notes use semantic HTML to retain merged cells and reference anchors.",)
         return ConversionResult(source, "docx", markdown, warnings, inline_images=tuple(images.images))

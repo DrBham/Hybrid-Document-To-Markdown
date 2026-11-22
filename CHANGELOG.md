@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Q6-C DOCX P0 fidelity (2026-11-22)
+
+- Convert Word OMML equations to inline `$...$` or display `$$...$$` LaTeX, filling OMML default properties the bundled converter requires; unconvertible equations keep their plain text with a warning.
+- Use the first row of simple Word tables as the Markdown header instead of an empty generated header row.
+- Compute list labels from `numbering.xml` in document order, including custom level text, letter/roman formats, start overrides, style-linked numbering, and nested bullets.
+- Add six DOCX regressions; the suite passes 253 tests and the Q5 corpus gate still passes 42 fresh-process runs.
+
 ## Unreleased — Q6 P2–P4 complete (2026-11-20)
 
 - Map extracted PDF raster images to source table cells with generic page-space bounding boxes; preserve unmatched images in the appendix with a warning.
