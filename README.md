@@ -6,10 +6,10 @@
 
 A Windows desktop app that converts local documents into one clean Markdown file, with images kept inside.
 
-[![Tests](https://img.shields.io/badge/tests-249%20passed-16A34A?style=flat-square&logo=pytest&logoColor=white)](#testing)
-[![Python](https://img.shields.io/badge/python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](#requirements)
+[![Tests](https://img.shields.io/badge/tests-244%20passed-16A34A?style=flat-square&logo=pytest&logoColor=white)](#-testing)
+[![Python](https://img.shields.io/badge/python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](#-quick-start)
 [![PySide6](https://img.shields.io/badge/PySide6-6.12-41CD52?style=flat-square&logo=qt&logoColor=white)](https://doc.qt.io/qtforpython-6/)
-[![Platform](https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows&logoColor=white)](#requirements)
+[![Platform](https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows&logoColor=white)](#-quick-start)
 [![License](https://img.shields.io/badge/license-MIT-F59E0B?style=flat-square)](LICENSE)
 
 </div>
@@ -18,68 +18,120 @@ A Windows desktop app that converts local documents into one clean Markdown file
   <img src="docs/images/app-window.png" alt="The app after converting an HTML report: the file list shows it as Converted, and the preview shows the resulting Markdown headings, numbered list, and table" width="900">
 </p>
 
-## Overview
+## 🔎 Overview
 
-Hybrid Document to Markdown turns everyday documents into Markdown that people and LLMs can read. Everything runs on your computer: no cloud service, account, or API key.
+Hybrid Document to Markdown turns Word, PDF, Office, web, and text files into Markdown that people and LLMs can read. It runs entirely on your computer, with no cloud service, account, or API key. Each document becomes one `.md` file, and its images travel inside that file as Base64.
 
-- **One file per document.** Images are embedded as Base64, so the `.md` file is self-contained.
-- **Structure is kept.** Headings, numbered lists, tables, equations (as LaTeX), and footnotes carry over where the source defines them.
-- **Batch friendly.** Convert several files of the same type at once; one failure does not stop the rest.
-- **Review before saving.** Preview the Markdown, copy it, or save it to a folder you choose.
-
+> [!NOTE]
 > This is an independent portfolio project. It uses [Microsoft MarkItDown](https://github.com/microsoft/markitdown) but is not affiliated with Microsoft.
 
-## Supported formats
+## ✨ Features
 
-| Format | Extensions | Notes |
-|---|---|---|
-| Word | `.docx` | Headings, list numbering, tables, equations, footnotes, images |
-| PDF | `.pdf` | Text layout, ruled tables, images placed in their table cells |
-| PowerPoint | `.pptx` | Slide text, images, chart data |
-| Excel | `.xlsx` | Cell values, formulas, images by cell anchor |
-| Text and data | `.txt`, `.csv`, `.json`, `.xml` | Source text preserved exactly |
-| Web | `.html`, `.htm` | Text, tables, preformatted blocks |
+- One self-contained `.md` file per document, with images embedded as Base64.
+- Headings, numbered lists, tables, footnotes, and Word equations (as LaTeX) carry over when the source defines them.
+- Batches of same-type files convert together, and one failed file does not stop the rest.
+- A preview shows the Markdown before you copy or save it.
+- Each conversion runs in a separate process, so the window stays responsive and a stuck file times out after 120 seconds.
 
-Scanned PDFs are not run through OCR. Complex layouts may still need a quick review.
+## 🚀 Quick start
 
-## Requirements
+You need Windows 10 or 11, Python 3.13, and Git. Dependencies are installed locally and are not stored in this repository.
 
-- Windows 10 or 11
-- Python 3.13
-- Git
+1. Clone the repository:
 
-## Installation
+   ```powershell
+   git clone https://github.com/DrBham/Hybrid-Document-To-Markdown.git
+   cd Hybrid-Document-To-Markdown
+   ```
 
-Dependencies are not stored in this repository. Install them into a local virtual environment:
+2. Create and activate a virtual environment:
 
-```powershell
-git clone https://github.com/DrBham/Hybrid-Document-To-Markdown.git
-cd Hybrid-Document-To-Markdown
+   ```powershell
+   python -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   ```
 
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-```
+3. Install the pinned dependencies and check them:
+
+   ```powershell
+   python -m pip install -r requirements.txt
+   python -m pip check
+   ```
+
+   Expected output of the last command:
+
+   ```text
+   No broken requirements found.
+   ```
+
+4. Start the app:
+
+   ```powershell
+   $env:PYTHONPATH = "src"
+   python -m document_converter
+   ```
+
+   The window from the screenshot above opens.
+
+5. Drop a document onto the window, press **Convert files**, and then **Save Markdown**.
 
 `requirements.txt` pins the tested versions. `requirements.in` lists the direct dependencies.
 
-## Usage
+## 🔬 Try it
 
-With the virtual environment active, start the app from the repository root:
+This small Word document has a heading, a paragraph, a numbered list, a table, and an equation:
 
-```powershell
-$env:PYTHONPATH = "src"
-python -m document_converter
+| Word element | Content |
+|---|---|
+| Heading 1 | Quarterly results |
+| Paragraph | Revenue grew in every region. |
+| Numbered list | North, South |
+| Table | Region / Growth, North / 12% |
+| Paragraph with an equation | Growth rate: new over old, as a Word fraction |
+
+The app produces this Markdown:
+
+```markdown
+# Quarterly results
+
+Revenue grew in every region.
+
+1. North
+2. South
+
+| Region | Growth |
+| --- | --- |
+| North | 12% |
+
+Growth rate: $\frac{new}{old}$
 ```
 
-1. **Add** documents with *Choose files* or by dropping them onto the window.
-2. **Convert** them. Each file shows its status in the list.
-3. **Review** a result in the preview. *N warnings* lists anything worth checking; warnings are not errors.
-4. **Save** the Markdown to the output folder.
+## 🗂️ Supported formats
 
-Each file has a 120-second limit, and *Cancel conversion* stops a running batch while keeping finished results.
+| Format | Extensions | What carries over | Status |
+|---|---|---|:---:|
+| Word | `.docx` | Headings, list numbering, tables, equations, footnotes, images | ✅ |
+| PDF | `.pdf` | Text layout, ruled tables, images placed in their table cells | ✅ |
+| PowerPoint | `.pptx` | Slide text, images, chart data | ✅ |
+| Excel | `.xlsx` | Cell values, formulas, images by cell anchor | ✅ |
+| Text and data | `.txt`, `.csv`, `.json`, `.xml` | Source text, unchanged | ✅ |
+| Web | `.html`, `.htm` | Text, tables, preformatted blocks | ✅ |
+| Scanned PDF | `.pdf` (image only) | No OCR, so no text | ❌ |
 
-### Python API
+## 🧭 Usage
+
+1. Add documents with **Choose files** or by dropping them onto the window.
+2. Convert them. Each file shows its status in the list.
+3. Open a result in the preview.
+4. Save the Markdown to the output folder.
+
+> [!TIP]
+> A file marked *Converted with warnings* converted fine. Click the warnings chip under the preview to see what is worth a quick check.
+
+**Cancel conversion** stops a running batch and keeps the files that already finished.
+
+<details>
+<summary>Use the converter from Python</summary>
 
 ```python
 from pathlib import Path
@@ -91,24 +143,33 @@ result = ConverterRouter().convert(Path("report.docx"))
 MarkdownExporter().export(result.markdown, Path("report.md"), overwrite=False)
 ```
 
-Use `BatchConverter().convert(paths)` for several files of one type. Advanced options (encoding, PDF modes, sheet selection, asset ZIP export) are described in [docs/QUALITY_IMPLEMENTATION.md](docs/QUALITY_IMPLEMENTATION.md#api-and-compatibility).
+Use `BatchConverter().convert(paths)` for several files of one type. Encoding, PDF modes, sheet selection, and asset ZIP export are covered in [docs/QUALITY_IMPLEMENTATION.md](docs/QUALITY_IMPLEMENTATION.md#api-and-compatibility).
 
-## How it works
+</details>
+
+## 🔄 How it works
+
+The diagram shows one document's path: validation, a format converter, and image extraction run before the Markdown reaches the preview.
 
 ```mermaid
 flowchart LR
-    A[Documents] --> B[Validate]
-    B --> C[Route by extension]
-    C --> D[Format converter]
-    C --> E[Extract images]
-    D --> F[Markdown]
+    A[Document]:::input --> B[Validate]:::process
+    B --> C[Route by extension]:::process
+    C --> D[Format converter]:::process
+    C --> E[Extract images]:::process
+    D --> F[Markdown with Base64 images]:::output
     E --> F
-    F --> G[Preview and save]
+    F --> G[Preview and save]:::output
+
+    classDef input fill:#B59A68,stroke:#5E4F33,color:#171512
+    classDef process fill:#2C2924,stroke:#B59A68,color:#D8D2C5
+    classDef output fill:#879285,stroke:#4A5248,color:#171512
 ```
 
-Each format has its own converter: Mammoth plus Word XML parsing for DOCX, pdfplumber geometry for PDF, MarkItDown for PPTX, openpyxl for XLSX, and source-preserving paths for text formats. Conversions run in a separate process so the window stays responsive.
+Each format has its own converter. DOCX uses Mammoth plus Word XML parsing, PDF uses pdfplumber geometry, PPTX uses MarkItDown, XLSX uses openpyxl, and the text formats keep their source as is.
 
-## Project structure
+<details>
+<summary>Project structure</summary>
 
 ```text
 src/document_converter/
@@ -119,38 +180,55 @@ src/document_converter/
 └── gui/             PySide6 window, pixel theme and widgets
 tests/               Unit, integration, and GUI tests
 tools/               Quality probes and the benchmark gate
-docs/                Acceptance reports and benchmark results
+docs/                Acceptance reports, benchmark results, screenshots
 assets/              Logo and bundled pixel fonts (SIL OFL)
 ```
 
-## Testing
+</details>
+
+## 🧪 Testing
+
+With the virtual environment active:
 
 ```powershell
 python -m pytest -q
+```
+
+Expected last line:
+
+```text
+244 passed
+```
+
+The benchmark converts a generated corpus in fresh processes and exits non-zero if any check fails:
+
+```powershell
 python tools/evaluate_q5.py --repeat 3 --output benchmark-result.json
 ```
 
-The suite covers all ten extensions, the GUI workflow, and conversion fidelity. The benchmark converts a generated corpus in fresh processes and exits non-zero if any check fails. The latest recorded run is in [docs/benchmarks/q6-final-windows.json](docs/benchmarks/q6-final-windows.json).
+The latest recorded run is in [docs/benchmarks/q6-final-windows.json](docs/benchmarks/q6-final-windows.json).
 
-## Limitations
+## ⚠️ Limitations
 
-- Base64 makes files about one third larger than the original images, and not every Markdown viewer or AI chat shows embedded images.
-- Images are preserved, not described. There is no OCR.
-- A batch accepts one file type at a time; files larger than 100 MiB are rejected.
+> [!WARNING]
+> Base64 makes a file about one third larger than its original images, and not every Markdown viewer or AI chat displays embedded images.
+
+- Images are kept, not described. There is no OCR.
+- A batch accepts one file type at a time, and files over 100 MiB are rejected.
 - Encrypted or damaged files may fail to convert.
-- A packaged installer is not available yet.
+- No packaged installer exists yet.
 
-## Roadmap
+## 🗺️ Roadmap
 
 | Milestone | Scope | Status |
-|---|---|---|
-| Conversion core | Ten extensions, desktop app, embedded images | Done |
-| Quality hardening | Fidelity, reliability, and benchmark gate ([final audit](docs/Q6_FINAL_AUDIT.md)) | Done |
-| Word fidelity | Equations, list numbering, headings, image alt text | Done |
-| Windows release | Installer and GitHub release | Next |
+|---|---|:---:|
+| Conversion core | Ten extensions, desktop app, embedded images | ✅ |
+| Quality hardening | Fidelity, reliability, and benchmark gate ([final audit](docs/Q6_FINAL_AUDIT.md)) | ✅ |
+| Word fidelity | Equations, list numbering, headings, image alt text | ✅ |
+| Windows release | Installer and GitHub release | 🔜 |
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history.
 
-## License
+## 📄 License
 
-Project code is released under the [MIT License](LICENSE). Third-party libraries and the bundled fonts keep their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Project code is released under the [MIT License](LICENSE). Third-party libraries and the bundled fonts keep their own licenses, listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
