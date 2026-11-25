@@ -6,13 +6,17 @@
 
 A Windows desktop app that converts local documents into one clean Markdown file, with images kept inside.
 
-[![Tests](https://img.shields.io/badge/tests-244%20passed-16A34A?style=flat-square&logo=pytest&logoColor=white)](#testing)
+[![Tests](https://img.shields.io/badge/tests-249%20passed-16A34A?style=flat-square&logo=pytest&logoColor=white)](#testing)
 [![Python](https://img.shields.io/badge/python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](#requirements)
 [![PySide6](https://img.shields.io/badge/PySide6-6.12-41CD52?style=flat-square&logo=qt&logoColor=white)](https://doc.qt.io/qtforpython-6/)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows&logoColor=white)](#requirements)
 [![License](https://img.shields.io/badge/license-MIT-F59E0B?style=flat-square)](LICENSE)
 
 </div>
+
+<p align="center">
+  <img src="docs/images/app-window.png" alt="The app after converting an HTML report: the file list shows it as Converted, and the preview shows the resulting Markdown headings, numbered list, and table" width="900">
+</p>
 
 ## Overview
 
@@ -61,7 +65,7 @@ python -m pip install -r requirements.txt
 
 ## Usage
 
-Start the app from the repository root:
+With the virtual environment active, start the app from the repository root:
 
 ```powershell
 $env:PYTHONPATH = "src"
@@ -123,10 +127,10 @@ assets/              Logo and bundled pixel fonts (SIL OFL)
 
 ```powershell
 python -m pytest -q
-python tools/evaluate_q5.py --repeat 3 --output docs/benchmarks/q6-final-windows.json
+python tools/evaluate_q5.py --repeat 3 --output benchmark-result.json
 ```
 
-The suite covers all ten formats, the GUI workflow, and conversion fidelity. The benchmark converts a generated corpus in fresh processes and exits non-zero if any check fails.
+The suite covers all ten extensions, the GUI workflow, and conversion fidelity. The benchmark converts a generated corpus in fresh processes and exits non-zero if any check fails. The latest recorded run is in [docs/benchmarks/q6-final-windows.json](docs/benchmarks/q6-final-windows.json).
 
 ## Limitations
 
@@ -138,14 +142,14 @@ The suite covers all ten formats, the GUI workflow, and conversion fidelity. The
 
 ## Roadmap
 
-| Phase | Scope | Status |
+| Milestone | Scope | Status |
 |---|---|---|
-| A–E | Conversion core, desktop app, embedded images | Done |
-| Q1–Q6 | Quality: fidelity, reliability, benchmarks ([final audit](docs/Q6_FINAL_AUDIT.md)) | Done |
-| Q6-C | DOCX fidelity: equations, numbering, headings, alt text | Done |
-| Q7 | Windows installer and GitHub release | Next |
+| Conversion core | Ten extensions, desktop app, embedded images | Done |
+| Quality hardening | Fidelity, reliability, and benchmark gate ([final audit](docs/Q6_FINAL_AUDIT.md)) | Done |
+| Word fidelity | Equations, list numbering, headings, image alt text | Done |
+| Windows release | Installer and GitHub release | Next |
 
-See [CHANGELOG.md](CHANGELOG.md) for details.
+See [CHANGELOG.md](CHANGELOG.md) for the full history.
 
 ## License
 
