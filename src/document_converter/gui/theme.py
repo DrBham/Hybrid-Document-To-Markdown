@@ -48,6 +48,8 @@ COLORS = {
     "scroll": "#665F54",
     "scroll_hover": "#7A7163",
     "scroll_track": "#1C1A17",
+    "drop_hover": "#29261F",
+    "drop_active": "#302D24",
 }
 
 
@@ -101,7 +103,7 @@ QLabel#appLogo {{
 
 QLabel#stepChip {{
     font-family: "Press Start 2P";
-    font-size: 8px;
+    font-size: 9px;
     padding: 8px 10px;
     border: 3px solid {C["outline"]};
     background-color: {C["surface"]};
@@ -142,25 +144,6 @@ QLabel#toast {{
     color: {C["foreground"]};
     font-size: 21px;
     padding: 8px 16px;
-}}
-
-QFrame#dropZone {{
-    background-color: {C["scroll_track"]};
-    border: 3px dashed {C["border_hover"]};
-}}
-
-QFrame#dropZone:hover {{
-    background-color: #29261F;
-    border: 3px dashed {C["primary"]};
-}}
-
-QFrame#dropZone:focus {{
-    border: 3px solid {C["primary"]};
-}}
-
-QFrame#dropZone[dragActive="true"] {{
-    background-color: #302D24;
-    border: 3px solid {C["primary"]};
 }}
 
 QLabel#fieldLabel {{
@@ -343,7 +326,7 @@ QHeaderView::section {{
     color: {C["primary"]};
     font-family: "Press Start 2P";
     font-size: 8px;
-    padding: 10px;
+    padding: 8px 10px;
 }}
 
 QScrollBar:vertical {{

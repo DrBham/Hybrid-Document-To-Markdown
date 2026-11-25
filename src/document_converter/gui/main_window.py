@@ -45,7 +45,6 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSizePolicy,
     QSplitter,
-    QStyle,
     QTreeWidget,
     QTreeWidgetItem,
     QVBoxLayout,
@@ -62,11 +61,12 @@ from .pixel_widgets import (
     PixelBackground,
     PixelCard,
     Toast,
+    pixel_icon,
     WorkflowSteps,
     add_press_shadow,
     set_status,
 )
-from .theme import APP_LOGO_PATH, APP_STYLESHEET, load_theme_fonts
+from .theme import APP_LOGO_PATH, APP_STYLESHEET, COLORS, load_theme_fonts
 
 
 FILE_FILTER = (
@@ -100,8 +100,8 @@ FORMAT_OPTIONS = (
     ("XML document (.xml)", (".xml",)),
 )
 
-class DropZone(QFrame):
-    """Accessible drag-and-drop surface with a file-picker alternative."""
+class DropZone(PixelCard):
+    """Accessible drag-and-drop card with a file-picker alternative."""
 
     paths_dropped = Signal(list)
     browse_requested = Signal()
@@ -109,6 +109,7 @@ class DropZone(QFrame):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self.setObjectName("dropZone")
+        self.setAttribute(Qt.WidgetAttribute.WA_Hover)
         self.setAcceptDrops(True)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setAccessibleName("Document drop zone")
@@ -118,14 +119,14 @@ class DropZone(QFrame):
         self.setMinimumHeight(150)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(18, 16, 18, 16)
-        layout.setSpacing(10)
+        layout.setContentsMargins(20, 18, 20, 20)
+        layout.setSpacing(12)
 
         title = QLabel("Add documents")
         title.setObjectName("sectionTitle")
 
         helper = QLabel(
-            "Choose a browse filter, or drag files here to detect their type automatically."
+            "Drop files on this card. Their type is detected automatically."
         )
         helper.setObjectName("mutedText")
         helper.setWordWrap(True)
@@ -144,9 +145,7 @@ class DropZone(QFrame):
             self.format_selector.addItem(label, extensions)
 
         self.browse_button = QPushButton("Choose files")
-        self.browse_button.setIcon(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_DialogOpenButton)
-        )
+        self.browse_button.setIcon(pixel_icon("folder", COLORS["foreground"]))
         self.browse_button.setAccessibleName("Choose document files")
         self.browse_button.setToolTip("Open the file picker")
         self.browse_button.clicked.connect(self.browse_requested)
@@ -198,7 +197,7 @@ class DropZone(QFrame):
             for extension in self.selected_extensions()
         )
         self.drop_hint.setText(
-            f"Browse filter: {extensions} · Drag any supported local documents here."
+            f"Browse filter: {extensions}"
         )
         self.setAccessibleDescription(
             f"Browse filter is {extensions}. Drag supported local documents here, "
@@ -227,10 +226,25 @@ class DropZone(QFrame):
     def reset_format(self) -> None:
         self.format_selector.setCurrentIndex(0)
 
+    def border_color(self) -> str:
+        # Same card as the others; the frame turns gold only while it can take files.
+        if self.property("dragActive") or self.underMouse():
+            return COLORS["primary"]
+        return COLORS["border_hover"] if self.hasFocus() else COLORS["border"]
+
+    def surface_color(self) -> str:
+        if self.property("dragActive"):
+            return COLORS["drop_active"]
+        return COLORS["drop_hover"] if self.underMouse() else COLORS["surface"]
+
+    def event(self, event: QEvent) -> bool:
+        if event.type() in (QEvent.Type.HoverEnter, QEvent.Type.HoverLeave, QEvent.Type.FocusIn, QEvent.Type.FocusOut):
+            self.update()
+        return super().event(event)
+
     def _set_drag_active(self, active: bool) -> None:
         self.setProperty("dragActive", active)
-        self.style().unpolish(self)
-        self.style().polish(self)
+        self.update()
 
     @staticmethod
     def _local_paths(mime_data: QMimeData) -> list[str]:
@@ -349,8 +363,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(root)
 
         page = QVBoxLayout(root)
-        page.setContentsMargins(28, 24, 28, 18)
-        page.setSpacing(18)
+        page.setContentsMargins(24, 20, 24, 16)
+        page.setSpacing(16)
         page.addLayout(self._build_header())
 
         self.error_banner = QLabel()
@@ -396,7 +410,7 @@ class MainWindow(QMainWindow):
         title = QLabel("Hybrid Document to Markdown")
         title.setObjectName("appTitle")
         subtitle = QLabel(
-            "Convert local documents, review Markdown, then export when ready."
+            "Convert local documents, review the Markdown, then save it."
         )
         subtitle.setObjectName("mutedText")
         title_stack.addWidget(title)
@@ -416,7 +430,7 @@ class MainWindow(QMainWindow):
     def _build_workflow_panel(self) -> QWidget:
         panel = QWidget()
         layout = QVBoxLayout(panel)
-        layout.setContentsMargins(0, 0, 10, 0)
+        layout.setContentsMargins(0, 0, 8, 0)
         layout.setSpacing(16)
 
         self.drop_zone = DropZone()
@@ -428,8 +442,8 @@ class MainWindow(QMainWindow):
     def _build_files_card(self) -> QWidget:
         files_card = PixelCard()
         files_layout = QVBoxLayout(files_card)
-        files_layout.setContentsMargins(16, 14, 16, 16)
-        files_layout.setSpacing(10)
+        files_layout.setContentsMargins(20, 18, 20, 20)
+        files_layout.setSpacing(12)
 
         files_header = QVBoxLayout()
         files_header.setSpacing(10)
@@ -442,24 +456,17 @@ class MainWindow(QMainWindow):
         files_title_row.addWidget(self.summary_label)
         files_title_row.addStretch()
 
-        self.remove_button = QPushButton("Remove selected")
-        self.remove_button.setIcon(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_DialogDiscardButton)
-        )
+        self.remove_button = QPushButton("Remove")
+        self.remove_button.setIcon(pixel_icon("trash", COLORS["foreground"]))
         self.clear_button = QPushButton("Clear all")
-        self.clear_button.setIcon(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_DialogResetButton)
-        )
-        files_actions = QHBoxLayout()
-        files_actions.addStretch()
-        files_actions.addWidget(self.remove_button)
-        files_actions.addWidget(self.clear_button)
+        self.clear_button.setIcon(pixel_icon("clear", COLORS["foreground"]))
+        files_title_row.addWidget(self.remove_button)
+        files_title_row.addWidget(self.clear_button)
 
         self.remove_button.setToolTip("Remove the highlighted files")
         self.clear_button.setToolTip("Remove every file from this batch")
 
         files_header.addLayout(files_title_row)
-        files_header.addLayout(files_actions)
 
         self.file_tree = QTreeWidget()
         self.file_tree.setAccessibleName("Selected document list")
@@ -500,15 +507,14 @@ class MainWindow(QMainWindow):
     def _build_output_card(self) -> QWidget:
         output_card = PixelCard()
         output_layout = QVBoxLayout(output_card)
-        output_layout.setContentsMargins(16, 14, 16, 16)
-        output_layout.setSpacing(10)
+        output_layout.setContentsMargins(20, 18, 20, 20)
+        output_layout.setSpacing(12)
 
         output_title = QLabel("Conversion and output")
         output_title.setObjectName("sectionTitle")
 
         self.media_helper = QLabel(
-            "Images from PDF, DOCX, PPTX, and XLSX are embedded automatically "
-            "inside the Markdown file as Base64. No AI model is required."
+            "Images are embedded automatically as Base64. No AI model is required."
         )
         self.media_helper.setObjectName("mediaHelper")
         self.media_helper.setAccessibleName(
@@ -520,9 +526,7 @@ class MainWindow(QMainWindow):
         self.output_path.setReadOnly(True)
         self.output_path.setAccessibleName("Markdown output directory")
         self.choose_output_button = QPushButton("Choose folder")
-        self.choose_output_button.setIcon(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_DirIcon)
-        )
+        self.choose_output_button.setIcon(pixel_icon("folder", COLORS["foreground"]))
         self.choose_output_button.setToolTip("Choose where Markdown files are saved")
         output_row.addWidget(self.output_path, stretch=1)
         output_row.addWidget(self.choose_output_button)
@@ -542,15 +546,11 @@ class MainWindow(QMainWindow):
 
         self.convert_button = QPushButton("Convert files")
         self.convert_button.setObjectName("primaryButton")
-        self.convert_button.setIcon(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_BrowserReload)
-        )
+        self.convert_button.setIcon(pixel_icon("convert", COLORS["ink"]))
         self.convert_button.setToolTip("Convert the selected documents locally")
         self.export_button = QPushButton("Save Markdown")
         self.export_button.setObjectName("accentButton")
-        self.export_button.setIcon(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton)
-        )
+        self.export_button.setIcon(pixel_icon("save", COLORS["ink"]))
         self.export_button.setAccessibleName("Save converted Markdown files")
         self.export_button.setToolTip(
             "Save successful conversions to the selected output folder"
@@ -567,8 +567,8 @@ class MainWindow(QMainWindow):
     def _build_preview_panel(self) -> QWidget:
         card = PixelCard()
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(16, 14, 16, 16)
-        layout.setSpacing(10)
+        layout.setContentsMargins(20, 18, 20, 20)
+        layout.setSpacing(12)
 
         header = QHBoxLayout()
         title = QLabel("Markdown preview")
@@ -586,9 +586,7 @@ class MainWindow(QMainWindow):
         )
 
         self.copy_button = QPushButton("Copy")
-        self.copy_button.setIcon(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogDetailedView)
-        )
+        self.copy_button.setIcon(pixel_icon("copy", COLORS["foreground"]))
         self.copy_button.setAccessibleName("Copy Markdown preview")
         self.copy_button.setToolTip("Copy the complete Markdown preview")
         header.addWidget(title)

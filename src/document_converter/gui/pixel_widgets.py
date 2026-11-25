@@ -9,6 +9,7 @@ from PySide6.QtGui import (
     QBrush,
     QColor,
     QFont,
+    QIcon,
     QPainter,
     QPixmap,
     QSyntaxHighlighter,
@@ -25,6 +26,35 @@ from PySide6.QtWidgets import (
 )
 
 from .theme import COLORS
+
+
+# 16x16 pixel icons as (x, y, w, h) fills and cut-outs, one family for every button.
+PIXEL_ICONS = {
+    "folder": ([(1, 3, 5, 11), (6, 4, 1, 10), (7, 5, 8, 9)], []),
+    "trash": ([(5, 1, 6, 2), (1, 3, 14, 2), (2, 6, 12, 9)], [(4, 8, 2, 5), (7, 8, 2, 5), (10, 8, 2, 5)]),
+    "clear": ([(2, 2, 2, 2), (4, 4, 2, 2), (6, 6, 4, 4), (10, 4, 2, 2), (12, 2, 2, 2),
+               (4, 10, 2, 2), (2, 12, 2, 2), (10, 10, 2, 2), (12, 12, 2, 2)], []),
+    "convert": ([(1, 7, 9, 2), (8, 4, 2, 8), (10, 5, 2, 6), (12, 6, 2, 4), (14, 7, 1, 2)], []),
+    "save": ([(1, 1, 12, 14), (13, 2, 1, 13), (14, 3, 1, 12)], [(4, 2, 7, 4), (4, 9, 8, 5)]),
+    "copy": ([(2, 1, 9, 2), (2, 3, 2, 9), (5, 5, 9, 10)], [(7, 7, 5, 6)]),
+}
+
+
+def pixel_icon(name: str, color: str) -> QIcon:
+    """Draw a crisp 16 px pixel icon at 2x so it stays sharp on HiDPI screens."""
+    fills, holes = PIXEL_ICONS[name]
+    pixmap = QPixmap(32, 32)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.scale(2, 2)
+    for x, y, w, h in fills:
+        painter.fillRect(x, y, w, h, QColor(color))
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
+    for x, y, w, h in holes:
+        painter.fillRect(x, y, w, h, Qt.GlobalColor.transparent)
+    painter.end()
+    pixmap.setDevicePixelRatio(2)
+    return QIcon(pixmap)
 
 
 class PixelBackground(QWidget):
@@ -70,13 +100,19 @@ class PixelCard(QFrame):
         # Reserve the shadow strip so child layouts never paint over it.
         self.setContentsMargins(0, 0, self.SHADOW, self.SHADOW)
 
+    def border_color(self) -> str:
+        return COLORS["border"]
+
+    def surface_color(self) -> str:
+        return COLORS["surface"]
+
     def paintEvent(self, event) -> None:  # noqa: N802 - Qt override
         painter = QPainter(self)
         body = self.rect().adjusted(0, 0, -self.SHADOW, -self.SHADOW)
         painter.fillRect(body.translated(self.SHADOW, self.SHADOW), QColor(COLORS["shadow"]))
-        painter.fillRect(body, QColor(COLORS["border"]))
+        painter.fillRect(body, QColor(self.border_color()))
         inset = self.BORDER
-        painter.fillRect(body.adjusted(inset, inset, -inset, -inset), QColor(COLORS["surface"]))
+        painter.fillRect(body.adjusted(inset, inset, -inset, -inset), QColor(self.surface_color()))
         accent = QColor(COLORS["primary"])
         painter.fillRect(QRect(body.left(), body.top(), self.RIVET, self.RIVET), accent)
         painter.fillRect(QRect(body.right() - self.RIVET + 1, body.top(), self.RIVET, self.RIVET), accent)
@@ -147,8 +183,9 @@ class Toast(QLabel):
             return
         width = min(self.sizeHint().width(), parent.width() - 48)
         self.resize(width, self.sizeHint().height())
-        # Bottom-right keeps the primary Convert/Save actions uncovered.
-        self.move(parent.width() - width - 32, parent.height() - self.height() - 40)
+        # Inside the preview's lower-right corner: clear of Convert/Save, the card
+        # border and the preview summary line.
+        self.move(parent.width() - width - 56, parent.height() - self.height() - 84)
 
 
 STATUS_COLORS = {
